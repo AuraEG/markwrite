@@ -31,16 +31,16 @@ MarkWrite addresses the common pain point of disjointed documentation workflows 
 
 ## Tech Stack
 
-| Layer           | Technology                              |
-|-----------------|-----------------------------------------|
-| Frontend        | SvelteKit 2, Svelte 5, TypeScript       |
-| Styling         | Tailwind CSS, shadcn-svelte             |
-| Editor          | Tiptap (ProseMirror-based)              |
-| Sync Engine     | Yjs (CRDT) + y-prosemirror              |
-| WebSocket       | Hocuspocus                              |
-| Database        | PostgreSQL 16 + Drizzle ORM             |
-| Auth            | Lucia (GitHub OAuth)                    |
-| Hosting         | Vercel + Railway                        |
+| Layer       | Technology                        |
+| ----------- | --------------------------------- |
+| Frontend    | SvelteKit 2, Svelte 5, TypeScript |
+| Styling     | Tailwind CSS, shadcn-svelte       |
+| Editor      | Tiptap (ProseMirror-based)        |
+| Sync Engine | Yjs (CRDT) + y-prosemirror        |
+| WebSocket   | Hocuspocus                        |
+| Database    | PostgreSQL 16 + Drizzle ORM       |
+| Auth        | Lucia (GitHub OAuth)              |
+| Hosting     | Vercel + Railway                  |
 
 ## Architecture
 
@@ -117,10 +117,10 @@ markwrite/
 
 ## Team
 
-| Role       | Member |
-|------------|--------|
-| Developer  | TBD    |
-| Reviewer   | TBD    |
+| Role      | Member |
+| --------- | ------ |
+| Developer | TBD    |
+| Reviewer  | TBD    |
 
 ## License
 

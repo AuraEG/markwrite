@@ -1,9 +1,9 @@
 ---
-name: "[FEAT] Feature Request"
+name: '[FEAT] Feature Request'
 about: Propose a new feature or enhancement
-title: "[FEAT] "
-labels: "type:feature"
-assignees: ""
+title: '[FEAT] '
+labels: 'type:feature'
+assignees: ''
 ---
 
 ## Summary

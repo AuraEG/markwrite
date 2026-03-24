@@ -1,9 +1,9 @@
 ---
-name: "[TASK] Technical Task"
+name: '[TASK] Technical Task'
 about: Track a technical task (refactor, CI, docs, tooling, research)
-title: "[TASK] "
-labels: "type:task"
-assignees: ""
+title: '[TASK] '
+labels: 'type:task'
+assignees: ''
 ---
 
 ## Summary
