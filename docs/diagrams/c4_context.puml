@@ -1,0 +1,38 @@
+@startuml C4_Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title C4 Context Diagram -- MarkWrite
+
+' --- Actors ---
+Person(writer, "Writer/Editor", "A person who creates and\nedits Markdown documents")
+
+Person(collaborator, "Collaborator", "A person who edits\ndocuments via shared links")
+
+Person(dev, "Developer", "Pushes code, creates PRs,\ntags releases")
+
+' --- Internal Systems ---
+System(markwrite, "MarkWrite", "Collaborative Markdown editor\nwith real-time sync.\nHandles multi-user editing\nwithout conflicts.")
+
+' --- External Systems ---
+System_Ext(github_oauth, "GitHub OAuth", "Authentication provider\nfor user identity")
+
+System_Ext(github_repo, "GitHub Repository", "Source code hosting,\nPR reviews, releases")
+
+System_Ext(gh_actions, "GitHub Actions", "CI/CD pipeline:\nlint, test, build,\ndeploy automation")
+
+System_Ext(vercel, "Vercel", "Hosts the SvelteKit\nweb application")
+
+System_Ext(railway, "Railway", "Hosts the Hocuspocus\nWebSocket server")
+
+' --- Relationships ---
+Rel(writer, markwrite, "Creates and edits\ndocuments", "HTTPS / WebSocket")
+Rel(collaborator, markwrite, "Edits shared\ndocuments", "HTTPS / WebSocket")
+Rel(markwrite, github_oauth, "Authenticates users", "OAuth 2.0")
+Rel(dev, github_repo, "Pushes code,\ncreates PRs", "Git / HTTPS")
+Rel(github_repo, gh_actions, "Triggers CI/CD\nworkflows", "Webhooks")
+Rel(gh_actions, vercel, "Deploys web app", "API")
+Rel(gh_actions, railway, "Deploys sync server", "API")
+
+@enduml

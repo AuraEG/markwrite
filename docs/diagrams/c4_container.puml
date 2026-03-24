@@ -1,0 +1,33 @@
+@startuml C4_Container
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title C4 Container Diagram -- MarkWrite
+
+Person(user, "User", "Writer or\ncollaborator")
+
+System_Boundary(markwrite, "MarkWrite System") {
+
+    Container(web_app, "Web Application", "SvelteKit, TypeScript", "Serves the UI, handles\nauthentication, document\nmanagement, and API routes")
+
+    Container(editor, "Editor Client", "Tiptap, Yjs", "Rich-text Markdown editor\nwith CRDT-based sync.\nRuns in browser.")
+
+    Container(sync_server, "Sync Server", "Hocuspocus, Node.js", "WebSocket server for\nYjs document sync,\npresence awareness,\nand persistence hooks")
+
+    ContainerDb(database, "PostgreSQL Database", "PostgreSQL 16", "Stores user accounts,\ndocument metadata,\nYjs state snapshots,\nand version history")
+
+}
+
+System_Ext(github_oauth, "GitHub OAuth", "User authentication")
+
+' --- Relationships ---
+Rel(user, web_app, "Loads UI, signs in,\nmanages documents", "HTTPS")
+Rel(user, editor, "Writes and edits\nMarkdown content", "Browser")
+Rel(editor, sync_server, "Syncs document state,\nsends cursor position", "WebSocket (Yjs)")
+Rel(web_app, database, "Reads/writes users,\ndocuments, permissions", "SQL via Drizzle")
+Rel(sync_server, database, "Persists Yjs document\nsnapshots on change", "SQL via pg")
+Rel(web_app, github_oauth, "Authenticates user\nvia OAuth flow", "HTTPS")
+Rel(sync_server, web_app, "Validates auth tokens\nfor document access", "HTTP (internal)")
+
+@enduml

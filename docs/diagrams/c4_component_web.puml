@@ -1,0 +1,44 @@
+@startuml C4_Component_Web
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title C4 Component Diagram -- MarkWrite Web Application
+
+Container_Boundary(web_app, "Web Application (SvelteKit)") {
+
+    Component(routes, "SvelteKit Routes", "Svelte", "Page components:\n/, /documents, /d/[id],\n/auth/*, /api/*")
+
+    Component(auth_module, "Auth Module", "Lucia Auth", "Handles GitHub OAuth,\nsession management,\nuser lookup")
+
+    Component(doc_service, "Document Service", "TypeScript", "Business logic for\ncreating, listing,\nsharing documents")
+
+    Component(editor_component, "Editor Component", "Tiptap + Yjs", "Rich-text editor with\nMarkdown support and\nreal-time collaboration")
+
+    Component(presence_store, "Presence Store", "Svelte Store", "Tracks online users,\ncursor positions,\nselections")
+
+    Component(db_client, "Database Client", "Drizzle ORM", "Type-safe queries\nfor PostgreSQL")
+
+    Component(ui_components, "UI Components", "shadcn-svelte", "Reusable UI primitives:\nbuttons, dialogs, forms")
+
+}
+
+ContainerDb(database, "PostgreSQL", "Database")
+
+Container(sync_server, "Sync Server", "Hocuspocus")
+
+System_Ext(github, "GitHub OAuth", "Auth provider")
+
+' --- Relationships ---
+Rel(routes, auth_module, "Checks session,\nprotects routes")
+Rel(routes, doc_service, "Calls for CRUD\noperations")
+Rel(routes, editor_component, "Renders editor\non document page")
+Rel(routes, ui_components, "Uses for layout\nand forms")
+Rel(editor_component, presence_store, "Updates cursor\npositions")
+Rel(editor_component, sync_server, "Connects via\nYjs WebSocket", "WS")
+Rel(doc_service, db_client, "Queries documents")
+Rel(auth_module, db_client, "Queries users,\nsessions")
+Rel(auth_module, github, "OAuth flow", "HTTPS")
+Rel(db_client, database, "SQL queries", "TCP")
+
+@enduml

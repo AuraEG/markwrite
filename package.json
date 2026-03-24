@@ -1,0 +1,31 @@
+{
+  "name": "markwrite",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Collaborative Markdown editor with real-time sync",
+  "author": "AuraEG <https://github.com/AuraEG>",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "test": "turbo test",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,svelte,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,svelte,json,md}\"",
+    "typecheck": "turbo typecheck",
+    "clean": "turbo clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "prettier": "^3.2.0",
+    "prettier-plugin-svelte": "^3.2.0",
+    "prettier-plugin-tailwindcss": "^0.5.0",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

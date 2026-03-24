@@ -1,0 +1,37 @@
+@startuml C4_Component_Sync
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title C4 Component Diagram -- MarkWrite Sync Server
+
+Container_Boundary(sync_server, "Sync Server (Hocuspocus)") {
+
+    Component(hocus_core, "Hocuspocus Server", "Node.js", "Core WebSocket server\nhandling Yjs sync protocol")
+
+    Component(auth_extension, "Auth Extension", "TypeScript", "Validates JWT/session\ntokens on connection,\nenforces document access")
+
+    Component(persistence_ext, "Persistence Extension", "TypeScript", "Saves Yjs document state\nto PostgreSQL on debounced\nintervals")
+
+    Component(presence_ext, "Presence Extension", "TypeScript", "Tracks connected users,\nbroadcasts cursor/selection\nupdates")
+
+    Component(rate_limiter, "Rate Limiter", "TypeScript", "Prevents abuse by limiting\nconnections per IP\nand document")
+
+    Component(pg_client, "PostgreSQL Client", "pg / Drizzle", "Direct database access\nfor persistence")
+
+}
+
+Container(web_app, "Web Application", "SvelteKit")
+
+ContainerDb(database, "PostgreSQL", "Database")
+
+' --- Relationships ---
+Rel(hocus_core, auth_extension, "Calls on\nconnection")
+Rel(hocus_core, persistence_ext, "Calls on\ndocument change")
+Rel(hocus_core, presence_ext, "Calls on\nawareness update")
+Rel(hocus_core, rate_limiter, "Checks before\naccepting connection")
+Rel(auth_extension, web_app, "Validates token", "HTTP")
+Rel(persistence_ext, pg_client, "Saves Yjs state")
+Rel(pg_client, database, "SQL queries", "TCP")
+
+@enduml
