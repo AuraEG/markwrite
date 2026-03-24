@@ -1,9 +1,9 @@
 ---
-name: "[BUG] Bug Report"
+name: '[BUG] Bug Report'
 about: Report a defect in existing functionality
-title: "[BUG] "
-labels: "type:bug"
-assignees: ""
+title: '[BUG] '
+labels: 'type:bug'
+assignees: ''
 ---
 
 ## Description
@@ -27,11 +27,11 @@ assignees: ""
 
 ## Environment
 
-| Field          | Value                    |
-|----------------|--------------------------|
-| OS / Device    |                          |
-| App Version    |                          |
-| Branch / Commit|                          |
+| Field           | Value |
+| --------------- | ----- |
+| OS / Device     |       |
+| App Version     |       |
+| Branch / Commit |       |
 
 ## Screenshots / Recordings
 

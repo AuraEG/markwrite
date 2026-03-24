@@ -5,20 +5,21 @@
 ## Related Issue
 
 <!-- Link to the GitHub Issue this PR addresses. Use "Closes #N" to auto-close. -->
+
 Closes #
 
 ## Type of Change
 
 <!-- Mark the relevant option with [x]. -->
 
-- [ ] `feat`     -- New feature
-- [ ] `fix`      -- Bug fix
-- [ ] `docs`     -- Documentation only
+- [ ] `feat` -- New feature
+- [ ] `fix` -- Bug fix
+- [ ] `docs` -- Documentation only
 - [ ] `refactor` -- Code restructuring (no behavior change)
-- [ ] `style`    -- Formatting, linting (no logic change)
-- [ ] `test`     -- Adding or updating tests
-- [ ] `chore`    -- Build, CI, tooling, dependencies
-- [ ] `perf`     -- Performance improvement
+- [ ] `style` -- Formatting, linting (no logic change)
+- [ ] `test` -- Adding or updating tests
+- [ ] `chore` -- Build, CI, tooling, dependencies
+- [ ] `perf` -- Performance improvement
 
 ## Changes Made
 
@@ -61,4 +62,5 @@ Closes #
 <!-- Any context, trade-offs, or decisions the reviewer should know about. -->
 
 ---
+
 Sprint: <!-- e.g., Sprint 3 -->

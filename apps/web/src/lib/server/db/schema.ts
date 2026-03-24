@@ -21,7 +21,7 @@ export const users = pgTable('users', {
   email: text('email'),
   avatarUrl: text('avatar_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const sessions = pgTable('sessions', {
@@ -29,7 +29,7 @@ export const sessions = pgTable('sessions', {
   userId: text('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull()
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
 });
 
 // --------------------------------------------------------------------------
@@ -47,10 +47,10 @@ export const documents = pgTable(
     yjsState: text('yjs_state'), // Base64 encoded Yjs state
     isPublic: boolean('is_public').default(false).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
-    ownerIdx: index('documents_owner_idx').on(table.ownerId)
+    ownerIdx: index('documents_owner_idx').on(table.ownerId),
   })
 );
 
@@ -65,10 +65,10 @@ export const documentCollaborators = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     permission: text('permission', { enum: ['view', 'edit'] })
       .default('view')
-      .notNull()
+      .notNull(),
   },
   (table) => ({
-    pk: index('collaborators_pk').on(table.documentId, table.userId)
+    pk: index('collaborators_pk').on(table.documentId, table.userId),
   })
 );
 
@@ -81,10 +81,10 @@ export const documentVersions = pgTable(
       .references(() => documents.id, { onDelete: 'cascade' }),
     yjsSnapshot: text('yjs_snapshot').notNull(), // Base64 encoded snapshot
     createdBy: text('created_by').references(() => users.id),
-    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
-    documentIdx: index('versions_document_idx').on(table.documentId)
+    documentIdx: index('versions_document_idx').on(table.documentId),
   })
 );
 

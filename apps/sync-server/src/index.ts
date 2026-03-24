@@ -70,9 +70,9 @@ const server = new Hocuspocus({
         `;
 
         console.log(`[ok] Persisted document: ${documentName}`);
-      }
-    })
-  ]
+      },
+    }),
+  ],
 });
 
 // --------------------------------------------------------------------------

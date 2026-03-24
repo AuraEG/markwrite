@@ -11,7 +11,10 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
-import { DATABASE_URL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
+
+// [*] Use dynamic env to avoid build-time requirement
+const DATABASE_URL = env.DATABASE_URL ?? 'postgresql://localhost:5432/markwrite';
 
 const client = postgres(DATABASE_URL);
 
