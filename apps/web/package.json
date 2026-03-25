@@ -12,8 +12,12 @@
     "lint": "eslint .",
     "typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:seed": "tsx scripts/seed.ts",
+    "db:seed:clear": "tsx scripts/seed.ts --clear",
+    "db:studio": "drizzle-kit studio",
+    "db:reset": "pnpm db:push && pnpm db:seed:clear"
   },
   "devDependencies": {
     "@codecov/sveltekit-plugin": "^1.9.1",
