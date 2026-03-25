@@ -10,6 +10,9 @@
 
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import { db } from '$lib/server/db';
+import { documents } from '$lib/server/db/schema';
+import { eq, desc } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ locals }) => {
   // [*] Redirect unauthenticated users to home
@@ -17,7 +20,25 @@ export const load: PageServerLoad = async ({ locals }) => {
     throw redirect(302, '/');
   }
 
+  // [*] Fetch user's documents
+  const userDocuments = await db
+    .select({
+      id: documents.id,
+      title: documents.title,
+      isPublic: documents.isPublic,
+      createdAt: documents.createdAt,
+      updatedAt: documents.updatedAt,
+    })
+    .from(documents)
+    .where(eq(documents.ownerId, locals.user.id))
+    .orderBy(desc(documents.updatedAt));
+
   return {
     user: locals.user,
+    documents: userDocuments.map((doc) => ({
+      ...doc,
+      createdAt: doc.createdAt.toISOString(),
+      updatedAt: doc.updatedAt.toISOString(),
+    })),
   };
 };
