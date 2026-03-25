@@ -1,0 +1,31 @@
+# Codecov Configuration
+# https://docs.codecov.com/docs/codecov-yaml
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 2%
+    patch:
+      default:
+        target: auto
+        threshold: 5%
+codecov:
+  token: 0a81f35b-84cb-42e1-b011-0f88529d7e06
+
+comment:
+  layout: 'reach,diff,flags,files'
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+
+ignore:
+  - '**/*.test.ts'
+  - '**/*.spec.ts'
+  - '**/tests/**'
+  - '**/__tests__/**'
+  - '**/node_modules/**'
+  - '**/*.config.ts'
+  - '**/*.config.js'
