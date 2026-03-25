@@ -43,6 +43,13 @@ export default [
     }
   },
   {
+    // [*] Allow @html in preview components (needed for Markdown rendering)
+    files: ['**/PreviewPanel.svelte'],
+    rules: {
+      'svelte/no-at-html-tags': 'off'
+    }
+  },
+  {
     ignores: [
       '.svelte-kit/**',
       '.vercel/**',
