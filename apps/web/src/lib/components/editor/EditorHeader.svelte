@@ -7,18 +7,22 @@
   //
   // Author  : AuraEG Team
   // Created : 2026-03-25
+  // Updated : 2026-03-26 - Added export functionality
   // ==========================================================================
 
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import * as Avatar from '$lib/components/ui/avatar';
   import * as Tooltip from '$lib/components/ui/tooltip';
+  import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
   import ArrowLeft from '@lucide/svelte/icons/arrow-left';
   import Share2 from '@lucide/svelte/icons/share-2';
   import History from '@lucide/svelte/icons/history';
   import Download from '@lucide/svelte/icons/download';
   import Check from '@lucide/svelte/icons/check';
   import Loader2 from '@lucide/svelte/icons/loader-2';
+  import FileText from '@lucide/svelte/icons/file-text';
+  import Code from '@lucide/svelte/icons/code';
   import type { Snippet } from 'svelte';
 
   // --------------------------------------------------------------------------
@@ -47,10 +51,22 @@
     owner: Owner;
     collaborators: Collaborator[];
     actions?: Snippet;
+    onExportHtml?: () => string;
+    onExportMarkdown?: () => string;
   }
 
-  let { title, canEdit, isOwner, isSaving, lastSaved, owner, collaborators, actions }: Props =
-    $props();
+  let {
+    title,
+    canEdit,
+    isOwner,
+    isSaving,
+    lastSaved,
+    owner,
+    collaborators,
+    actions,
+    onExportHtml,
+    onExportMarkdown,
+  }: Props = $props();
 
   // --------------------------------------------------------------------------
   // [SECTION] State
@@ -65,6 +81,68 @@
       editedTitle = title;
     }
   });
+
+  // --------------------------------------------------------------------------
+  // [SECTION] Export Functions
+  // --------------------------------------------------------------------------
+
+  function downloadFile(content: string, filename: string, mimeType: string) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleExportHtml() {
+    if (!onExportHtml) return;
+    const markdown = onExportHtml();
+
+    // [*] Import marked dynamically for HTML export
+    const { marked } = await import('marked');
+    const html = marked.parse(markdown) as string;
+
+    const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
+    h1 { font-size: 2rem; font-weight: 700; margin-top: 1.5rem; }
+    h2 { font-size: 1.5rem; font-weight: 600; margin-top: 1.25rem; }
+    h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1rem; }
+    p { margin: 0.75rem 0; }
+    ul, ol { padding-left: 1.5rem; }
+    blockquote { border-left: 3px solid #ccc; padding-left: 1rem; font-style: italic; color: #666; }
+    code { background: #f4f4f4; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-family: monospace; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    img { max-width: 100%; height: auto; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+    th { background: #f4f4f4; font-weight: 600; }
+    a { color: #0066cc; }
+    hr { border: none; border-top: 1px solid #ddd; margin: 1.5rem 0; }
+  </style>
+</head>
+<body>
+${html}
+</body>
+</html>`;
+    downloadFile(fullHtml, `${title || 'document'}.html`, 'text/html');
+  }
+
+  function handleExportMarkdown() {
+    if (!onExportMarkdown) return;
+    const markdown = onExportMarkdown();
+    downloadFile(markdown, `${title || 'document'}.md`, 'text/markdown');
+  }
 </script>
 
 <!-- -------------------------------------------------------------------------- -->
@@ -200,13 +278,24 @@
       <Tooltip.Content>Version history</Tooltip.Content>
     </Tooltip.Root>
 
-    <Tooltip.Root>
-      <Tooltip.Trigger>
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger>
         <Button variant="ghost" size="icon" class="h-9 w-9">
           <Download class="h-4 w-4" />
         </Button>
-      </Tooltip.Trigger>
-      <Tooltip.Content>Export document</Tooltip.Content>
-    </Tooltip.Root>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content align="end" class="w-44">
+        <DropdownMenu.Label>Export As</DropdownMenu.Label>
+        <DropdownMenu.Separator />
+        <DropdownMenu.Item onclick={handleExportHtml} class="flex items-center gap-2">
+          <Code class="h-4 w-4" />
+          <span>HTML</span>
+        </DropdownMenu.Item>
+        <DropdownMenu.Item onclick={handleExportMarkdown} class="flex items-center gap-2">
+          <FileText class="h-4 w-4" />
+          <span>Markdown</span>
+        </DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
   </div>
 </header>

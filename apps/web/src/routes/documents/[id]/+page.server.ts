@@ -28,6 +28,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       id: documents.id,
       title: documents.title,
       ownerId: documents.ownerId,
+      yjsState: documents.yjsState,
       isPublic: documents.isPublic,
       createdAt: documents.createdAt,
       updatedAt: documents.updatedAt,
@@ -101,6 +102,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     document: {
       id: document.id,
       title: document.title,
+      yjsState: document.yjsState,
       isPublic: document.isPublic,
       createdAt: document.createdAt,
       updatedAt: document.updatedAt,
