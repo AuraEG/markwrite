@@ -7,15 +7,19 @@
   //
   // Author  : AuraEG Team
   // Created : 2026-03-25
+  // Updated : 2026-03-26 - Markdown editor with live preview
   // ==========================================================================
 
   import { fly, fade } from 'svelte/transition';
   import { Button } from '$lib/components/ui/button';
   import * as Tooltip from '$lib/components/ui/tooltip';
   import { EditorHeader, EditorPanel, PreviewPanel } from '$lib/components/editor';
+  import { saveDocumentState } from '$lib/collaboration';
   import Eye from '@lucide/svelte/icons/eye';
   import EyeOff from '@lucide/svelte/icons/eye-off';
   import Pencil from '@lucide/svelte/icons/pencil';
+  import Cloud from '@lucide/svelte/icons/cloud';
+  import CloudOff from '@lucide/svelte/icons/cloud-off';
   import type { PageData } from './$types';
 
   // --------------------------------------------------------------------------
@@ -25,9 +29,10 @@
   let { data }: { data: PageData } = $props();
 
   let showPreview = $state(true);
-  let editorContent = $state('');
+  let markdownContent = $state('');
   let isSaving = $state(false);
   let lastSaved = $state<Date | null>(null);
+  let saveError = $state<string | null>(null);
 
   // --------------------------------------------------------------------------
   // [SECTION] Derived State
@@ -35,6 +40,32 @@
 
   let canEdit = $derived(data.canEdit);
   let isOwner = $derived(data.permission === 'owner');
+
+  // --------------------------------------------------------------------------
+  // [SECTION] Handlers
+  // --------------------------------------------------------------------------
+
+  function handleContentUpdate(content: string) {
+    markdownContent = content;
+  }
+
+  async function handleStateUpdate(state: string) {
+    if (!canEdit) return;
+
+    isSaving = true;
+    saveError = null;
+
+    const result = await saveDocumentState(data.document.id, state);
+
+    isSaving = false;
+
+    if (result.success) {
+      lastSaved = new Date();
+    } else {
+      saveError = result.error ?? 'Failed to save';
+      console.error('[Editor] Save failed:', result.error);
+    }
+  }
 </script>
 
 <svelte:head>
@@ -57,6 +88,8 @@
     {lastSaved}
     owner={data.document.owner}
     collaborators={data.collaborators}
+    onExportHtml={() => markdownContent}
+    onExportMarkdown={() => markdownContent}
   >
     {#snippet actions()}
       <Tooltip.Root>
@@ -88,9 +121,12 @@
     <!-- Editor Panel -->
     <div class="border-border flex-1 overflow-auto border-r {showPreview ? 'w-1/2' : 'w-full'}">
       <EditorPanel
-        bind:content={editorContent}
+        documentId={data.document.id}
+        initialState={data.document.yjsState}
         readonly={!canEdit}
-        placeholder={canEdit ? 'Start writing...' : 'This document is read-only'}
+        placeholder={canEdit ? 'Start writing markdown...' : 'This document is read-only'}
+        onContentUpdate={handleContentUpdate}
+        onStateUpdate={handleStateUpdate}
       />
     </div>
 
@@ -101,7 +137,7 @@
         in:fly={{ x: 50, duration: 200 }}
         out:fly={{ x: 50, duration: 150 }}
       >
-        <PreviewPanel content={editorContent} />
+        <PreviewPanel content={markdownContent} />
       </div>
     {/if}
   </main>
@@ -124,12 +160,28 @@
           Editing
         </span>
       {/if}
+
+      {#if saveError}
+        <span class="text-destructive flex items-center gap-1">
+          <CloudOff class="h-3 w-3" />
+          {saveError}
+        </span>
+      {:else if isSaving}
+        <span class="flex items-center gap-1">
+          <Cloud class="h-3 w-3 animate-pulse" />
+          Saving...
+        </span>
+      {:else if lastSaved}
+        <span class="flex items-center gap-1 text-green-600 dark:text-green-400">
+          <Cloud class="h-3 w-3" />
+          Saved
+        </span>
+      {/if}
     </div>
     <div class="flex items-center gap-4">
       {#if lastSaved}
-        <span>Saved {lastSaved.toLocaleTimeString()}</span>
+        <span>Last saved {lastSaved.toLocaleTimeString()}</span>
       {/if}
-      <span>{editorContent.length} characters</span>
     </div>
   </footer>
 </div>

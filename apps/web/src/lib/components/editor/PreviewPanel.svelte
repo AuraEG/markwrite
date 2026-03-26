@@ -3,11 +3,15 @@
   // File    : PreviewPanel.svelte
   // Project : MarkWrite
   // Layer   : Presentation
-  // Purpose : Markdown preview panel with rendered content.
+  // Purpose : Live preview panel that renders Markdown and HTML content.
   //
   // Author  : AuraEG Team
   // Created : 2026-03-25
+  // Updated : 2026-03-26 - Full markdown and HTML rendering support
   // ==========================================================================
+
+  import { browser } from '$app/environment';
+  import { marked } from 'marked';
 
   // --------------------------------------------------------------------------
   // [SECTION] Props
@@ -20,92 +24,35 @@
   let { content }: Props = $props();
 
   // --------------------------------------------------------------------------
-  // [SECTION] Markdown Rendering
-  // Note: Basic HTML escaping for now. Will integrate marked/remark later.
+  // [SECTION] Marked Configuration
   // --------------------------------------------------------------------------
 
-  function escapeHtml(text: string): string {
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
+  // [*] Configure marked for GFM with HTML support
+  marked.setOptions({
+    gfm: true,
+    breaks: true,
+  });
 
-  function renderBasicMarkdown(text: string): string {
-    if (!text.trim()) {
+  // --------------------------------------------------------------------------
+  // [SECTION] Content Processing
+  // --------------------------------------------------------------------------
+
+  function renderContent(markdown: string): string {
+    if (!markdown || !markdown.trim()) {
       return '<p class="text-muted-foreground italic">Preview will appear here...</p>';
     }
 
-    let html = escapeHtml(text);
-
-    // [*] Headers
-    html = html.replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>');
-    html = html.replace(/^## (.+)$/gm, '<h2 class="text-xl font-semibold mt-6 mb-3">$1</h2>');
-    html = html.replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold mt-6 mb-4">$1</h1>');
-
-    // [*] Bold and Italic
-    html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold">$1</strong>');
-    html = html.replace(/\*(.+?)\*/g, '<em class="italic">$1</em>');
-    html = html.replace(/__(.+?)__/g, '<strong class="font-bold">$1</strong>');
-    html = html.replace(/_(.+?)_/g, '<em class="italic">$1</em>');
-
-    // [*] Inline Code
-    html = html.replace(
-      /`([^`]+)`/g,
-      '<code class="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">$1</code>'
-    );
-
-    // [*] Code Blocks
-    html = html.replace(
-      /```(\w*)\n([\s\S]*?)```/g,
-      '<pre class="bg-muted p-4 rounded-lg overflow-x-auto my-4"><code class="text-sm font-mono">$2</code></pre>'
-    );
-
-    // [*] Blockquotes
-    html = html.replace(
-      /^&gt; (.+)$/gm,
-      '<blockquote class="border-l-4 border-primary pl-4 my-4 italic text-muted-foreground">$1</blockquote>'
-    );
-
-    // [*] Horizontal Rule
-    html = html.replace(/^---$/gm, '<hr class="my-6 border-border" />');
-
-    // [*] Links
-    html = html.replace(
-      /\[([^\]]+)\]\(([^)]+)\)/g,
-      '<a href="$2" class="text-primary underline hover:no-underline" target="_blank" rel="noopener">$1</a>'
-    );
-
-    // [*] Unordered Lists
-    html = html.replace(/^- (.+)$/gm, '<li class="ml-4">$1</li>');
-    html = html.replace(/(<li[^>]*>.*<\/li>\n?)+/g, '<ul class="list-disc my-2">$&</ul>');
-
-    // [*] Paragraphs (lines with content that aren't already wrapped)
-    html = html
-      .split('\n')
-      .map((line) => {
-        if (
-          line.trim() &&
-          !line.startsWith('<h') &&
-          !line.startsWith('<pre') &&
-          !line.startsWith('<blockquote') &&
-          !line.startsWith('<hr') &&
-          !line.startsWith('<ul') &&
-          !line.startsWith('<li') &&
-          !line.startsWith('</ul')
-        ) {
-          return `<p class="my-2">${line}</p>`;
-        }
-        return line;
-      })
-      .join('\n');
-
-    return html;
+    try {
+      // [*] Parse markdown to HTML (marked handles embedded HTML)
+      const html = marked.parse(markdown) as string;
+      return html;
+    } catch (error) {
+      console.error('[PreviewPanel] Render failed:', error);
+      return `<p class="text-destructive">Failed to render preview</p>`;
+    }
   }
 
-  let renderedContent = $derived(renderBasicMarkdown(content));
+  let renderedContent = $derived(browser ? renderContent(content) : '');
 </script>
 
 <!-- -------------------------------------------------------------------------- -->
@@ -121,7 +68,123 @@
   </div>
 
   <!-- Preview Content -->
-  <div class="prose prose-slate dark:prose-invert max-w-none flex-1 overflow-auto p-6">
+  <div
+    class="preview-content prose prose-slate dark:prose-invert max-w-none flex-1 overflow-auto p-6"
+  >
     {@html renderedContent}
   </div>
 </div>
+
+<style>
+  /* [*] Enhanced prose styling for preview */
+  .preview-content :global(h1) {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .preview-content :global(h2) {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .preview-content :global(h3) {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .preview-content :global(p) {
+    margin: 0.75rem 0;
+  }
+
+  .preview-content :global(ul),
+  .preview-content :global(ol) {
+    padding-left: 1.5rem;
+    margin: 0.75rem 0;
+  }
+
+  .preview-content :global(li) {
+    margin: 0.25rem 0;
+  }
+
+  .preview-content :global(blockquote) {
+    border-left: 3px solid var(--border);
+    padding-left: 1rem;
+    margin: 1rem 0;
+    color: var(--muted-foreground);
+    font-style: italic;
+  }
+
+  .preview-content :global(code) {
+    background-color: var(--muted);
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-family: ui-monospace, monospace;
+  }
+
+  .preview-content :global(pre) {
+    background-color: var(--muted);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+
+  .preview-content :global(pre code) {
+    background: none;
+    padding: 0;
+  }
+
+  .preview-content :global(hr) {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 1.5rem 0;
+  }
+
+  .preview-content :global(a) {
+    color: var(--primary);
+    text-decoration: underline;
+  }
+
+  .preview-content :global(a:hover) {
+    text-decoration: none;
+  }
+
+  /* [*] Image styling for badges and inline images */
+  .preview-content :global(img) {
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+    vertical-align: middle;
+  }
+
+  /* [*] Badge images in links */
+  .preview-content :global(a > img) {
+    margin: 0.125rem;
+  }
+
+  /* [*] Tables styling */
+  .preview-content :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+  }
+
+  .preview-content :global(th),
+  .preview-content :global(td) {
+    border: 1px solid var(--border);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+
+  .preview-content :global(th) {
+    background-color: var(--muted);
+    font-weight: 600;
+  }
+</style>
