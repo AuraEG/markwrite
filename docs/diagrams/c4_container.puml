@@ -11,7 +11,7 @@ System_Boundary(markwrite, "MarkWrite System") {
 
     Container(web_app, "Web Application", "SvelteKit, TypeScript", "Serves the UI, handles\nauthentication, document\nmanagement, and API routes")
 
-    Container(editor, "Editor Client", "Tiptap, Yjs", "Rich-text Markdown editor\nwith CRDT-based sync.\nRuns in browser.")
+    Container(editor, "Editor Client", "CodeMirror, Yjs, marked", "Markdown code editor\nwith CRDT-based sync\nand live preview.\nRuns in browser.")
 
     Container(sync_server, "Sync Server", "Hocuspocus, Node.js", "WebSocket server for\nYjs document sync,\npresence awareness,\nand persistence hooks")
 

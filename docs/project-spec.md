@@ -228,8 +228,9 @@ technology that enables:
 | -------------- | ------------------------------------ |
 | Frontend       | SvelteKit 2 + Svelte 5 + TypeScript  |
 | Styling        | Tailwind CSS + shadcn-svelte         |
-| Editor         | Tiptap (headless, ProseMirror-based) |
-| Sync (CRDT)    | Yjs + y-prosemirror                  |
+| Editor         | CodeMirror 6 (code editor)           |
+| Preview        | marked (Markdown parser)             |
+| Sync (CRDT)    | Yjs                                  |
 | WebSocket      | Hocuspocus                           |
 | Database       | PostgreSQL 16                        |
 | ORM            | Drizzle                              |
@@ -246,15 +247,15 @@ technology that enables:
 [User A Types]
      |
      v
-[Local Yjs Document] --> [y-prosemirror] --> [Tiptap/ProseMirror]
+[CodeMirror Editor] --> [Local Yjs Document] --> [yjs-utils]
      |
-     | (Yjs Sync Protocol)
+     | (Yjs State Encoding)
      v
-[WebSocket Connection] --> [Hocuspocus Server]
-     |                           |
-     | Broadcast                 | Persist
-     v                           v
-[User B's Yjs Document]    [PostgreSQL]
+[API State Endpoint] --> [PostgreSQL]
+     |
+     | (Future: WebSocket)
+     v
+[User B's Yjs Document] --> [CodeMirror Editor]
 ```
 
 ### 6.3 Database Schema
@@ -275,7 +276,7 @@ The first release is complete when:
 
 ```
 [*] User can sign in with GitHub and see their document list
-[*] User can create a new document and edit it with Tiptap
+[*] User can create a new document and edit it with CodeMirror
 [*] Two users editing the same document see real-time updates
 [*] User cursors and names are visible to collaborators
 [*] User can generate a shareable link with edit/view permissions
@@ -323,7 +324,8 @@ The following are explicitly deferred to future releases:
 |            | allows concurrent updates without coordination.               |
 | Yjs        | A CRDT implementation for collaborative editing.              |
 | Hocuspocus | A production-ready WebSocket backend for Yjs.                 |
-| Tiptap     | A headless, extensible rich-text editor built on ProseMirror. |
+| CodeMirror | A code editor library for the web, used for Markdown editing. |
+| marked     | A fast Markdown parser and compiler for rendering previews.   |
 | Presence   | Awareness of which users are online and where their cursors   |
 |            | are located within a document.                                |
 

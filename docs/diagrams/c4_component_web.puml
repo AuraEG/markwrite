@@ -13,7 +13,7 @@ Container_Boundary(web_app, "Web Application (SvelteKit)") {
 
     Component(doc_service, "Document Service", "TypeScript", "Business logic for\ncreating, listing,\nsharing documents")
 
-    Component(editor_component, "Editor Component", "Tiptap + Yjs", "Rich-text editor with\nMarkdown support and\nreal-time collaboration")
+    Component(editor_component, "Editor Component", "CodeMirror + Yjs", "Markdown code editor\nwith syntax highlighting\nand real-time collaboration")
 
     Component(presence_store, "Presence Store", "Svelte Store", "Tracks online users,\ncursor positions,\nselections")
 
