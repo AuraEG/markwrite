@@ -7,12 +7,19 @@
   //
   // Author  : AuraEG Team
   // Created : 2026-03-25
-  // Updated : 2026-03-26 - Added toolbar with formatting buttons
+  // Updated : 2026-03-27 - Added Hocuspocus WebSocket sync support
   // ==========================================================================
 
   import { onMount, onDestroy } from 'svelte';
+  import { browser } from '$app/environment';
   import * as Y from 'yjs';
-  import { decodeYjsState, encodeYjsState } from '$lib/collaboration';
+  import {
+    decodeYjsState,
+    encodeYjsState,
+    createHocuspocusProvider,
+    getSessionToken,
+  } from '$lib/collaboration';
+  import type { HocuspocusProvider } from '@hocuspocus/provider';
   import MarkdownEditor from './MarkdownEditor.svelte';
   import MarkdownToolbar from './MarkdownToolbar.svelte';
 
@@ -26,18 +33,22 @@
     initialContent?: string;
     readonly?: boolean;
     placeholder?: string;
+    enableRealTimeSync?: boolean;
     onContentUpdate?: (content: string) => void;
     onStateUpdate?: (state: string) => void;
+    onSyncStatusChange?: (status: 'connecting' | 'connected' | 'disconnected' | 'error') => void;
   }
 
   let {
-    documentId: _documentId,
+    documentId,
     initialState = null,
     initialContent = '',
     readonly = false,
     placeholder = 'Start writing markdown...',
+    enableRealTimeSync = false,
     onContentUpdate,
     onStateUpdate,
+    onSyncStatusChange,
   }: Props = $props();
 
   // --------------------------------------------------------------------------
@@ -47,9 +58,12 @@
   let content = $state('');
   let ydoc: Y.Doc | null = $state(null);
   let ytext: Y.Text | null = $state(null);
+  let provider: HocuspocusProvider | null = null;
   let saveTimeout: ReturnType<typeof setTimeout> | null = null;
   let isMounted = false;
   let editorRef: MarkdownEditor | null = null;
+  let syncStatus = $state<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  let isRemoteChange = false; // [*] Flag to prevent echo loops
 
   // --------------------------------------------------------------------------
   // [SECTION] Lifecycle
@@ -60,28 +74,79 @@
 
     // [*] Cache props at mount time to avoid reactivity warnings
     const cachedInitialContent = initialContent;
+    const cachedDocumentId = documentId;
+    const cachedEnableRealTimeSync = enableRealTimeSync;
 
     // [*] Create Yjs document for CRDT sync
     ydoc = new Y.Doc();
     ytext = ydoc.getText('content');
 
-    // [*] Load initial state if provided
+    // [*] Load initial state if provided (before connecting to sync server)
     if (initialState) {
       try {
         decodeYjsState(ydoc, initialState);
         content = ytext.toString();
       } catch (error) {
         console.error('[EditorPanel] Failed to load initial state:', error);
-        // Fall back to initialContent
         if (cachedInitialContent) {
           ytext.insert(0, cachedInitialContent);
           content = cachedInitialContent;
         }
       }
     } else if (cachedInitialContent) {
-      // [*] Initialize with content if no state
       ytext.insert(0, cachedInitialContent);
       content = cachedInitialContent;
+    }
+
+    // [*] Connect to Hocuspocus for real-time sync if enabled
+    if (cachedEnableRealTimeSync && browser && ydoc) {
+      syncStatus = 'connecting';
+      onSyncStatusChange?.('connecting');
+
+      provider = createHocuspocusProvider({
+        documentId: cachedDocumentId,
+        ydoc: ydoc,
+        token: getSessionToken() || undefined,
+        onConnect: () => {
+          syncStatus = 'connected';
+          onSyncStatusChange?.('connected');
+        },
+        onDisconnect: () => {
+          syncStatus = 'disconnected';
+          onSyncStatusChange?.('disconnected');
+        },
+        onSynced: () => {
+          // [*] Update content from synced state
+          if (ytext) {
+            content = ytext.toString();
+            onContentUpdate?.(content);
+          }
+        },
+        onError: (error) => {
+          console.error('[EditorPanel] Sync error:', error);
+          syncStatus = 'error';
+          onSyncStatusChange?.('error');
+        },
+      });
+    }
+
+    // [*] Listen for remote changes
+    if (ytext) {
+      ytext.observe((event) => {
+        // [*] Only process remote changes (not our own edits)
+        if (ytext && isMounted && event.transaction.origin !== 'local') {
+          const newContent = ytext.toString();
+          if (newContent !== content) {
+            isRemoteChange = true;
+            content = newContent;
+            onContentUpdate?.(content);
+            // [*] Reset flag after a tick to allow CodeMirror to update
+            setTimeout(() => {
+              isRemoteChange = false;
+            }, 0);
+          }
+        }
+      });
     }
 
     // [*] Notify parent of initial content
@@ -101,7 +166,13 @@
       onStateUpdate(encodeYjsState(ydoc));
     }
 
-    // [*] Cleanup
+    // [*] Disconnect from sync server
+    if (provider) {
+      provider.destroy();
+      provider = null;
+    }
+
+    // [*] Cleanup Yjs document
     if (ydoc) {
       ydoc.destroy();
     }
@@ -112,14 +183,19 @@
   // --------------------------------------------------------------------------
 
   function handleContentChange(newContent: string) {
+    // [*] Skip if this is an echo from a remote change
+    if (isRemoteChange) {
+      return;
+    }
+
     content = newContent;
 
-    // [*] Update Yjs text
-    if (ytext) {
-      ydoc?.transact(() => {
+    // [*] Update Yjs text with local origin marker
+    if (ytext && ydoc) {
+      ydoc.transact(() => {
         ytext!.delete(0, ytext!.length);
         ytext!.insert(0, newContent);
-      });
+      }, 'local'); // [*] Mark as local transaction
     }
 
     // [*] Notify parent of content change
@@ -194,6 +270,10 @@
 
   export function getState(): string {
     return ydoc ? encodeYjsState(ydoc) : '';
+  }
+
+  export function getSyncStatus(): typeof syncStatus {
+    return syncStatus;
   }
 
   export function focus(): void {

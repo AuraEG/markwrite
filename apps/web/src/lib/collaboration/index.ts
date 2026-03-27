@@ -10,3 +10,4 @@
 
 export * from './yjs-utils';
 export * from './document-sync';
+export * from './hocuspocus-provider';

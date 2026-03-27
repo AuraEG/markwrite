@@ -33,6 +33,9 @@
     onContentChange,
   }: Props = $props();
 
+  // [*] Track external content changes for reactive updates
+  let externalContent = $derived(content);
+
   // --------------------------------------------------------------------------
   // [SECTION] State
   // --------------------------------------------------------------------------
@@ -184,13 +187,14 @@
   // [SECTION] Reactive Updates
   // --------------------------------------------------------------------------
 
+  // [*] React to external content changes (e.g., from Yjs sync)
   $effect(() => {
-    if (editorView && content !== editorView.state.doc.toString()) {
+    if (editorView && externalContent !== editorView.state.doc.toString()) {
       editorView.dispatch({
         changes: {
           from: 0,
           to: editorView.state.doc.length,
-          insert: content,
+          insert: externalContent,
         },
       });
     }

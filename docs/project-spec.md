@@ -224,22 +224,22 @@ technology that enables:
 
 ### 6.1 Tech Stack
 
-| Component      | Technology                           |
-| -------------- | ------------------------------------ |
-| Frontend       | SvelteKit 2 + Svelte 5 + TypeScript  |
-| Styling        | Tailwind CSS + shadcn-svelte         |
-| Editor         | CodeMirror 6 (code editor)           |
-| Preview        | marked (Markdown parser)             |
-| Sync (CRDT)    | Yjs                                  |
-| WebSocket      | Hocuspocus                           |
-| Database       | PostgreSQL 16                        |
-| ORM            | Drizzle                              |
-| Auth           | Lucia (session-based, GitHub OAuth)  |
-| Hosting Web    | Vercel                               |
-| Hosting WS     | Railway                              |
-| CI/CD          | GitHub Actions                       |
-| Error Tracking | Sentry                               |
-| Coverage       | Codecov                              |
+| Component      | Technology                          |
+| -------------- | ----------------------------------- |
+| Frontend       | SvelteKit 2 + Svelte 5 + TypeScript |
+| Styling        | Tailwind CSS + shadcn-svelte        |
+| Editor         | CodeMirror 6 (code editor)          |
+| Preview        | marked (Markdown parser)            |
+| Sync (CRDT)    | Yjs                                 |
+| WebSocket      | Hocuspocus                          |
+| Database       | PostgreSQL 16                       |
+| ORM            | Drizzle                             |
+| Auth           | Lucia (session-based, GitHub OAuth) |
+| Hosting Web    | Vercel                              |
+| Hosting WS     | Railway                             |
+| CI/CD          | GitHub Actions                      |
+| Error Tracking | Sentry                              |
+| Coverage       | Codecov                             |
 
 ### 6.2 Data Flow
 

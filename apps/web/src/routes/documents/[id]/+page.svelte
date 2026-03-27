@@ -7,7 +7,7 @@
   //
   // Author  : AuraEG Team
   // Created : 2026-03-25
-  // Updated : 2026-03-26 - Markdown editor with live preview
+  // Updated : 2026-03-27 - Added optional real-time collaboration toggle
   // ==========================================================================
 
   import { fly, fade } from 'svelte/transition';
@@ -20,6 +20,10 @@
   import Pencil from '@lucide/svelte/icons/pencil';
   import Cloud from '@lucide/svelte/icons/cloud';
   import CloudOff from '@lucide/svelte/icons/cloud-off';
+  import Users from '@lucide/svelte/icons/users';
+  import Wifi from '@lucide/svelte/icons/wifi';
+  import WifiOff from '@lucide/svelte/icons/wifi-off';
+  import Loader2 from '@lucide/svelte/icons/loader-2';
   import type { PageData } from './$types';
 
   // --------------------------------------------------------------------------
@@ -33,6 +37,9 @@
   let isSaving = $state(false);
   let lastSaved = $state<Date | null>(null);
   let saveError = $state<string | null>(null);
+  let syncStatus = $state<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  let collaborationEnabled = $state(false);
+  let editorKey = $state(0);
 
   // --------------------------------------------------------------------------
   // [SECTION] Derived State
@@ -66,6 +73,22 @@
       console.error('[Editor] Save failed:', result.error);
     }
   }
+
+  function handleSyncStatusChange(status: 'connecting' | 'connected' | 'disconnected' | 'error') {
+    syncStatus = status;
+  }
+
+  function toggleCollaboration() {
+    collaborationEnabled = !collaborationEnabled;
+    // [*] Update status before re-rendering
+    if (collaborationEnabled) {
+      syncStatus = 'connecting';
+    } else {
+      syncStatus = 'disconnected';
+    }
+    // [*] Force re-render of EditorPanel to reconnect/disconnect
+    editorKey++;
+  }
 </script>
 
 <svelte:head>
@@ -92,8 +115,35 @@
     onExportMarkdown={() => markdownContent}
   >
     {#snippet actions()}
+      <!-- Collaboration Toggle -->
       <Tooltip.Root>
-        <Tooltip.Trigger>
+        <Tooltip.Trigger asChild>
+          <Button
+            variant={syncStatus === 'connected' ? 'default' : 'ghost'}
+            size="sm"
+            onclick={toggleCollaboration}
+            class="h-9 gap-2 {syncStatus === 'connected' ? 'bg-green-600 hover:bg-green-700' : ''}"
+          >
+            <Users class="h-4 w-4" />
+            {#if syncStatus === 'connecting'}
+              <span class="text-xs">Connecting...</span>
+            {:else if syncStatus === 'connected'}
+              <span class="text-xs">Live</span>
+            {:else}
+              <span class="text-xs">Collaborate</span>
+            {/if}
+          </Button>
+        </Tooltip.Trigger>
+        <Tooltip.Content>
+          {collaborationEnabled
+            ? 'Disable real-time collaboration'
+            : 'Enable real-time collaboration'}
+        </Tooltip.Content>
+      </Tooltip.Root>
+
+      <!-- Preview Toggle -->
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>
           <Button
             variant="ghost"
             size="icon"
@@ -120,14 +170,18 @@
   <main class="flex flex-1 overflow-hidden">
     <!-- Editor Panel -->
     <div class="border-border flex-1 overflow-auto border-r {showPreview ? 'w-1/2' : 'w-full'}">
-      <EditorPanel
-        documentId={data.document.id}
-        initialState={data.document.yjsState}
-        readonly={!canEdit}
-        placeholder={canEdit ? 'Start writing markdown...' : 'This document is read-only'}
-        onContentUpdate={handleContentUpdate}
-        onStateUpdate={handleStateUpdate}
-      />
+      {#key editorKey}
+        <EditorPanel
+          documentId={data.document.id}
+          initialState={data.document.yjsState}
+          readonly={!canEdit}
+          placeholder={canEdit ? 'Start writing markdown...' : 'This document is read-only'}
+          enableRealTimeSync={collaborationEnabled}
+          onContentUpdate={handleContentUpdate}
+          onStateUpdate={handleStateUpdate}
+          onSyncStatusChange={handleSyncStatusChange}
+        />
+      {/key}
     </div>
 
     <!-- Preview Panel -->
@@ -161,6 +215,32 @@
         </span>
       {/if}
 
+      <!-- Sync Status (only show when collaboration is enabled) -->
+      {#if collaborationEnabled}
+        {#if syncStatus === 'connecting'}
+          <span class="flex items-center gap-1 text-yellow-600 dark:text-yellow-400">
+            <Loader2 class="h-3 w-3 animate-spin" />
+            Connecting...
+          </span>
+        {:else if syncStatus === 'connected'}
+          <span class="flex items-center gap-1 text-green-600 dark:text-green-400">
+            <Wifi class="h-3 w-3" />
+            Live
+          </span>
+        {:else if syncStatus === 'error'}
+          <span class="text-destructive flex items-center gap-1">
+            <WifiOff class="h-3 w-3" />
+            Sync error
+          </span>
+        {:else}
+          <span class="flex items-center gap-1">
+            <WifiOff class="h-3 w-3" />
+            Offline
+          </span>
+        {/if}
+      {/if}
+
+      <!-- Save Status -->
       {#if saveError}
         <span class="text-destructive flex items-center gap-1">
           <CloudOff class="h-3 w-3" />
