@@ -14,6 +14,7 @@
   import { Button } from '$lib/components/ui/button';
   import * as Tooltip from '$lib/components/ui/tooltip';
   import { EditorHeader, EditorPanel, PreviewPanel } from '$lib/components/editor';
+  import CollaboratorsList from '$lib/components/editor/CollaboratorsList.svelte';
   import { saveDocumentState } from '$lib/collaboration';
   import Eye from '@lucide/svelte/icons/eye';
   import EyeOff from '@lucide/svelte/icons/eye-off';
@@ -40,6 +41,7 @@
   let syncStatus = $state<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
   let collaborationEnabled = $state(false);
   let editorKey = $state(0);
+  let collaborators = $state<Array<{ id: string; username: string }>>([]);
 
   // --------------------------------------------------------------------------
   // [SECTION] Derived State
@@ -85,9 +87,14 @@
       syncStatus = 'connecting';
     } else {
       syncStatus = 'disconnected';
+      collaborators = [];
     }
     // [*] Force re-render of EditorPanel to reconnect/disconnect
     editorKey++;
+  }
+
+  function handleCollaboratorsChange(newCollaborators: Array<{ id: string; username: string }>) {
+    collaborators = newCollaborators;
   }
 </script>
 
@@ -115,6 +122,11 @@
     onExportMarkdown={() => markdownContent}
   >
     {#snippet actions()}
+      <!-- Online Collaborators -->
+      {#if collaborationEnabled && collaborators.length > 0}
+        <CollaboratorsList {collaborators} />
+      {/if}
+
       <!-- Collaboration Toggle -->
       <Tooltip.Root>
         <Tooltip.Trigger asChild>
@@ -177,9 +189,12 @@
           readonly={!canEdit}
           placeholder={canEdit ? 'Start writing markdown...' : 'This document is read-only'}
           enableRealTimeSync={collaborationEnabled}
+          currentUserId={data.user?.id}
+          currentUsername={data.user?.username}
           onContentUpdate={handleContentUpdate}
           onStateUpdate={handleStateUpdate}
           onSyncStatusChange={handleSyncStatusChange}
+          onCollaboratorsChange={handleCollaboratorsChange}
         />
       {/key}
     </div>
