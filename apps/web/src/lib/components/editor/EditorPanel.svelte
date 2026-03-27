@@ -34,9 +34,12 @@
     readonly?: boolean;
     placeholder?: string;
     enableRealTimeSync?: boolean;
+    currentUserId?: string;
+    currentUsername?: string;
     onContentUpdate?: (content: string) => void;
     onStateUpdate?: (state: string) => void;
     onSyncStatusChange?: (status: 'connecting' | 'connected' | 'disconnected' | 'error') => void;
+    onCollaboratorsChange?: (collaborators: Array<{ id: string; username: string }>) => void;
   }
 
   let {
@@ -46,9 +49,12 @@
     readonly = false,
     placeholder = 'Start writing markdown...',
     enableRealTimeSync = false,
+    currentUserId = '',
+    currentUsername = 'Anonymous',
     onContentUpdate,
     onStateUpdate,
     onSyncStatusChange,
+    onCollaboratorsChange,
   }: Props = $props();
 
   // --------------------------------------------------------------------------
@@ -110,6 +116,14 @@
         onConnect: () => {
           syncStatus = 'connected';
           onSyncStatusChange?.('connected');
+
+          // [*] Set local awareness state
+          if (provider?.awareness) {
+            provider.awareness.setLocalStateField('user', {
+              id: currentUserId || 'anonymous',
+              username: currentUsername,
+            });
+          }
         },
         onDisconnect: () => {
           syncStatus = 'disconnected';
@@ -128,6 +142,21 @@
           onSyncStatusChange?.('error');
         },
       });
+
+      // [*] Listen for awareness changes
+      if (provider.awareness) {
+        provider.awareness.on('change', () => {
+          if (!provider?.awareness) return;
+
+          const states = Array.from(provider.awareness.getStates().entries());
+          const collaborators = states
+            .filter(([clientId]) => clientId !== provider.awareness.clientID)
+            .map(([_, state]) => state.user)
+            .filter((user): user is { id: string; username: string } => !!user);
+
+          onCollaboratorsChange?.(collaborators);
+        });
+      }
     }
 
     // [*] Listen for remote changes

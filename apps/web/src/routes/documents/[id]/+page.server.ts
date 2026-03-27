@@ -99,6 +99,13 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   }
 
   return {
+    user: locals.user
+      ? {
+          id: locals.user.id,
+          username: locals.user.username,
+          avatarUrl: locals.user.avatarUrl,
+        }
+      : null,
     document: {
       id: document.id,
       title: document.title,
