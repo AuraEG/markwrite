@@ -23,6 +23,7 @@
   import Loader2 from '@lucide/svelte/icons/loader-2';
   import FileText from '@lucide/svelte/icons/file-text';
   import Code from '@lucide/svelte/icons/code';
+  import { toast } from 'svelte-sonner';
   import type { Snippet } from 'svelte';
 
   // --------------------------------------------------------------------------
@@ -137,13 +138,17 @@
 ${html}
 </body>
 </html>`;
-    downloadFile(fullHtml, `${title || 'document'}.html`, 'text/html');
+    const filename = `${title || 'document'}.html`;
+    downloadFile(fullHtml, filename, 'text/html');
+    toast.success(`Downloaded ${filename}`);
   }
 
   function handleExportMarkdown() {
     if (!onExportMarkdown) return;
     const markdown = onExportMarkdown();
-    downloadFile(markdown, `${title || 'document'}.md`, 'text/markdown');
+    const filename = `${title || 'document'}.md`;
+    downloadFile(markdown, filename, 'text/markdown');
+    toast.success(`Downloaded ${filename}`);
   }
 </script>
 
