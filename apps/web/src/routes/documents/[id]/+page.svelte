@@ -182,9 +182,13 @@
   <!-- -------------------------------------------------------------------------- -->
   <!-- [SECTION] Editor Content Area -->
   <!-- -------------------------------------------------------------------------- -->
-  <main class="flex flex-1 overflow-hidden">
+  <main class="flex flex-1 flex-col overflow-hidden md:flex-row">
     <!-- Editor Panel -->
-    <div class="border-border flex-1 overflow-auto border-r {showPreview ? 'w-1/2' : 'w-full'}">
+    <div
+      class="border-border flex-1 overflow-auto {showPreview
+        ? 'h-1/2 border-b md:h-full md:w-1/2 md:border-b-0 md:border-r'
+        : 'h-full w-full'}"
+    >
       {#key editorKey}
         <EditorPanel
           documentId={data.document.id}
@@ -205,7 +209,7 @@
     <!-- Preview Panel -->
     {#if showPreview}
       <div
-        class="bg-muted/30 w-1/2 overflow-auto"
+        class="bg-muted/30 h-1/2 overflow-auto md:h-full md:w-1/2"
         in:fly={{ x: 50, duration: 200 }}
         out:fly={{ x: 50, duration: 150 }}
       >
