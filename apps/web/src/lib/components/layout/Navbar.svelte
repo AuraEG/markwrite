@@ -85,10 +85,19 @@
               </DropdownMenu.Item>
             </DropdownMenu.Group>
             <DropdownMenu.Separator />
-            <DropdownMenu.Item href="/auth/logout" class="text-destructive focus:text-destructive">
-              <LogOut class="mr-2 h-4 w-4" />
-              <span>Log out</span>
-            </DropdownMenu.Item>
+            <form action="/auth/logout" method="POST" class="w-full">
+              <DropdownMenu.Item
+                class="text-destructive focus:text-destructive w-full cursor-pointer"
+                onclick={(e: MouseEvent) => {
+                  e.preventDefault();
+                  const form = (e.currentTarget as HTMLElement).closest('form');
+                  form?.submit();
+                }}
+              >
+                <LogOut class="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenu.Item>
+            </form>
           </DropdownMenu.Content>
         </DropdownMenu.Root>
       {:else}

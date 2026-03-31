@@ -102,6 +102,15 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
     ...sessionCookie.attributes,
   });
 
+  // [*] Store GitHub access token for API access (Gist creation, etc.)
+  cookies.set('github_access_token', tokens.accessToken, {
+    path: '/',
+    secure: import.meta.env.PROD,
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+  });
+
   // [*] Clear OAuth state cookie
   cookies.delete('github_oauth_state', { path: '/' });
 

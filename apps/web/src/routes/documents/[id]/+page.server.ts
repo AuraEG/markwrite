@@ -18,9 +18,10 @@ import type { PageServerLoad } from './$types';
 // [SECTION] Page Load
 // --------------------------------------------------------------------------
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+export const load: PageServerLoad = async ({ params, locals, url }) => {
   const { id } = params;
   const userId = locals.user?.id ?? null;
+  const shareToken = url.searchParams.get('token');
 
   // [*] Fetch document with owner info
   const [document] = await db
@@ -30,6 +31,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       ownerId: documents.ownerId,
       yjsState: documents.yjsState,
       isPublic: documents.isPublic,
+      shareToken: documents.shareToken,
+      gistId: documents.gistId,
+      gistUrl: documents.gistUrl,
       createdAt: documents.createdAt,
       updatedAt: documents.updatedAt,
       ownerUsername: users.username,
@@ -64,7 +68,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     }
   }
 
-  // [*] Check access: user must have permission or document is public
+  // [*] Check access via share token
+  if (!permission && shareToken && document.shareToken === shareToken) {
+    permission = 'view';
+  }
+
+  // [*] Check access: user must have permission, share token, or document is public
   if (!permission && !document.isPublic) {
     if (!userId) {
       error(401, { message: 'Please sign in to access this document' });
@@ -111,6 +120,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       title: document.title,
       yjsState: document.yjsState,
       isPublic: document.isPublic,
+      shareToken: document.shareToken,
+      gistUrl: document.gistUrl,
       createdAt: document.createdAt,
       updatedAt: document.updatedAt,
       owner: {

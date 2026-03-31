@@ -53,6 +53,7 @@
     actions?: Snippet;
     onExportHtml?: () => string;
     onExportMarkdown?: () => string;
+    onShare?: () => void;
   }
 
   let {
@@ -66,6 +67,7 @@
     actions,
     onExportHtml,
     onExportMarkdown,
+    onShare,
   }: Props = $props();
 
   // --------------------------------------------------------------------------
@@ -261,7 +263,7 @@ ${html}
     {#if isOwner}
       <Tooltip.Root>
         <Tooltip.Trigger>
-          <Button variant="ghost" size="icon" class="h-9 w-9">
+          <Button variant="ghost" size="icon" class="h-9 w-9" onclick={onShare}>
             <Share2 class="h-4 w-4" />
           </Button>
         </Tooltip.Trigger>

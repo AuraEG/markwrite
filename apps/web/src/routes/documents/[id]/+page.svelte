@@ -15,6 +15,7 @@
   import * as Tooltip from '$lib/components/ui/tooltip';
   import { EditorHeader, EditorPanel, PreviewPanel } from '$lib/components/editor';
   import CollaboratorsList from '$lib/components/editor/CollaboratorsList.svelte';
+  import ShareDialog from '$lib/components/editor/ShareDialog.svelte';
   import { saveDocumentState } from '$lib/collaboration';
   import Eye from '@lucide/svelte/icons/eye';
   import EyeOff from '@lucide/svelte/icons/eye-off';
@@ -42,6 +43,7 @@
   let collaborationEnabled = $state(false);
   let editorKey = $state(0);
   let collaborators = $state<Array<{ id: string; username: string }>>([]);
+  let showShareDialog = $state(false);
 
   // --------------------------------------------------------------------------
   // [SECTION] Derived State
@@ -120,6 +122,7 @@
     collaborators={data.collaborators}
     onExportHtml={() => markdownContent}
     onExportMarkdown={() => markdownContent}
+    onShare={() => (showShareDialog = true)}
   >
     {#snippet actions()}
       <!-- Online Collaborators -->
@@ -280,3 +283,15 @@
     </div>
   </footer>
 </div>
+
+<!-- -------------------------------------------------------------------------- -->
+<!-- [SECTION] ShareDialog -->
+<!-- -------------------------------------------------------------------------- -->
+<ShareDialog
+  bind:open={showShareDialog}
+  documentId={data.document.id}
+  {isOwner}
+  initialIsPublic={data.document.isPublic}
+  initialShareToken={data.document.shareToken}
+  initialGistUrl={data.document.gistUrl}
+/>
