@@ -13,7 +13,8 @@ import type { RequestHandler } from './$types';
 export const GET: RequestHandler = async ({ cookies }) => {
   const state = generateState();
 
-  const url = await github.createAuthorizationURL(state, { scopes: ['user:email'] });
+  // [*] Include 'gist' scope for GitHub Gist sharing feature
+  const url = await github.createAuthorizationURL(state, { scopes: ['user:email', 'gist'] });
 
   // [*] Store state in cookie for CSRF protection
   cookies.set('github_oauth_state', state, {

@@ -46,6 +46,9 @@ export const documents = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     yjsState: text('yjs_state'), // Base64 encoded Yjs state
     isPublic: boolean('is_public').default(false).notNull(),
+    shareToken: text('share_token').unique(), // Token for shareable links
+    gistId: text('gist_id'), // GitHub Gist ID for public sharing
+    gistUrl: text('gist_url'), // GitHub Gist URL
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },

@@ -24,5 +24,8 @@ export const POST: RequestHandler = async ({ locals, cookies }) => {
     ...sessionCookie.attributes,
   });
 
+  // [*] Clear GitHub access token cookie
+  cookies.delete('github_access_token', { path: '/' });
+
   redirect(302, '/');
 };

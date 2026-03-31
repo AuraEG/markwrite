@@ -79,7 +79,9 @@
     "drizzle-orm": "^0.30.0",
     "lucia": "^3.2.0",
     "marked": "^17.0.5",
+    "nanoid": "^5.1.7",
     "postgres": "^3.4.0",
+    "svelte-sonner": "^1.1.0",
     "y-prosemirror": "^1.2.0",
     "yjs": "^13.6.0",
     "zod": "^3.23.0"

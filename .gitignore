@@ -37,3 +37,6 @@ pnpm-debug.log*
 
 # Misc
 .vercel/
+
+# Drizzle migrations (using db:push workflow)
+drizzle/
