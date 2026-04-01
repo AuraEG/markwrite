@@ -44,6 +44,13 @@
   let editorView: EditorView | null = null;
   let undoCmd: ((view: EditorView) => boolean) | null = null;
   let redoCmd: ((view: EditorView) => boolean) | null = null;
+  let lastAppliedTheme: 'light' | 'dark' | null = null;
+
+  // [*] Store themes for reconfiguration
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let lightThemeExtension: any = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let darkThemeExtension: any = null;
 
   // --------------------------------------------------------------------------
   // [SECTION] Lifecycle
@@ -127,6 +134,10 @@
       },
     });
 
+    // [*] Store theme extensions for reconfiguration
+    lightThemeExtension = lightTheme;
+    darkThemeExtension = oneDark;
+
     // --------------------------------------------------------------------------
     // [SECTION] Markdown Highlight Style
     // --------------------------------------------------------------------------
@@ -138,12 +149,21 @@
       { tag: tags.strong, fontWeight: '700' },
       { tag: tags.emphasis, fontStyle: 'italic' },
       { tag: tags.strikethrough, textDecoration: 'line-through' },
-      { tag: tags.link, color: 'hsl(var(--primary))', textDecoration: 'underline' },
-      { tag: tags.url, color: 'hsl(var(--primary))', opacity: '0.7' },
+      { tag: tags.link, color: '#3b82f6', textDecoration: 'underline' },
+      { tag: tags.url, color: '#60a5fa', opacity: '0.9' },
       { tag: tags.monospace, fontFamily: 'monospace', backgroundColor: 'hsl(var(--muted))' },
       { tag: tags.quote, color: 'hsl(var(--muted-foreground))', fontStyle: 'italic' },
       { tag: tags.list, color: 'hsl(var(--primary))' },
     ]);
+
+    // [*] Create compartment for dynamic theme switching
+    const { Compartment } = await import('@codemirror/state');
+    const themeCompartment = new Compartment();
+
+    // [*] Store compartment reference for theme switching
+    (
+      editorContainer as HTMLElement & { themeCompartment?: typeof themeCompartment }
+    ).themeCompartment = themeCompartment;
 
     // --------------------------------------------------------------------------
     // [SECTION] Create Editor
@@ -158,11 +178,11 @@
       keymap.of([...defaultKeymap, ...historyKeymap]),
       cmPlaceholder(placeholder),
       EditorView.lineWrapping,
-      drawSelection(), // [*] Enable visual selection
+      drawSelection(),
       syntaxHighlighting(defaultHighlightStyle),
       syntaxHighlighting(markdownHighlight),
       EditorState.readOnly.of(readonly),
-      theme === 'dark' ? oneDark : lightTheme,
+      themeCompartment.of(theme === 'dark' ? oneDark : lightTheme),
       EditorView.updateListener.of((update) => {
         if (update.docChanged && onContentChange) {
           onContentChange(update.state.doc.toString());
@@ -197,6 +217,23 @@
           insert: externalContent,
         },
       });
+    }
+  });
+
+  // [*] React to theme changes and reconfigure editor
+  $effect(() => {
+    if (editorView && theme !== lastAppliedTheme && lightThemeExtension && darkThemeExtension) {
+      const container = editorContainer as HTMLElement & {
+        themeCompartment?: { reconfigure: (ext: unknown) => unknown };
+      };
+      if (container.themeCompartment) {
+        editorView.dispatch({
+          effects: container.themeCompartment.reconfigure(
+            theme === 'dark' ? darkThemeExtension : lightThemeExtension
+          ),
+        });
+        lastAppliedTheme = theme;
+      }
     }
   });
 

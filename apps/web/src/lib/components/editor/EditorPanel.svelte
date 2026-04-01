@@ -8,6 +8,7 @@
   // Author  : AuraEG Team
   // Created : 2026-03-25
   // Updated : 2026-03-27 - Added Hocuspocus WebSocket sync support
+  // Updated : 2026-03-31 - Added theme support for dark mode
   // ==========================================================================
 
   import { onMount, onDestroy } from 'svelte';
@@ -22,6 +23,7 @@
   import type { HocuspocusProvider } from '@hocuspocus/provider';
   import MarkdownEditor from './MarkdownEditor.svelte';
   import MarkdownToolbar from './MarkdownToolbar.svelte';
+  import { themeStore } from '$lib/stores/theme.svelte';
 
   // --------------------------------------------------------------------------
   // [SECTION] Props
@@ -325,6 +327,7 @@
       {content}
       {readonly}
       {placeholder}
+      theme={themeStore.resolvedTheme}
       onContentChange={handleContentChange}
     />
   </div>

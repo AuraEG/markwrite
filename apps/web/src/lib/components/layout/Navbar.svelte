@@ -7,6 +7,7 @@
   //
   // Author  : AuraEG Team
   // Created : 2026-03-25
+  // Updated : 2026-03-31 - Added theme toggle
   // ==========================================================================
 
   import { Button } from '$lib/components/ui/button';
@@ -16,7 +17,11 @@
   import LogOut from '@lucide/svelte/icons/log-out';
   import User from '@lucide/svelte/icons/user';
   import Settings from '@lucide/svelte/icons/settings';
+  import Sun from '@lucide/svelte/icons/sun';
+  import Moon from '@lucide/svelte/icons/moon';
+  import Monitor from '@lucide/svelte/icons/monitor';
   import { fade } from 'svelte/transition';
+  import { themeStore, type Theme } from '$lib/stores/theme.svelte';
 
   interface Props {
     user: {
@@ -26,6 +31,10 @@
   }
 
   let { user }: Props = $props();
+
+  function handleThemeChange(newTheme: Theme): void {
+    themeStore.setTheme(newTheme);
+  }
 </script>
 
 <header
@@ -48,7 +57,43 @@
     <!-- -------------------------------------------------------------------------- -->
     <!-- [SECTION] Navigation & User Menu -->
     <!-- -------------------------------------------------------------------------- -->
-    <nav class="flex items-center gap-4">
+    <nav class="flex items-center gap-2">
+      <!-- Theme Toggle Button -->
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger>
+          <Button variant="ghost" size="icon" class="h-9 w-9" aria-label="Toggle theme">
+            {#if themeStore.resolvedTheme === 'light'}
+              <Sun class="h-4 w-4" />
+            {:else}
+              <Moon class="h-4 w-4" />
+            {/if}
+          </Button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content align="end">
+          <DropdownMenu.Item class="cursor-pointer" onclick={() => handleThemeChange('light')}>
+            <Sun class="mr-2 h-4 w-4" />
+            <span>Light</span>
+            {#if themeStore.theme === 'light'}
+              <span class="ml-auto text-xs">*</span>
+            {/if}
+          </DropdownMenu.Item>
+          <DropdownMenu.Item class="cursor-pointer" onclick={() => handleThemeChange('dark')}>
+            <Moon class="mr-2 h-4 w-4" />
+            <span>Dark</span>
+            {#if themeStore.theme === 'dark'}
+              <span class="ml-auto text-xs">*</span>
+            {/if}
+          </DropdownMenu.Item>
+          <DropdownMenu.Item class="cursor-pointer" onclick={() => handleThemeChange('system')}>
+            <Monitor class="mr-2 h-4 w-4" />
+            <span>System</span>
+            {#if themeStore.theme === 'system'}
+              <span class="ml-auto text-xs">*</span>
+            {/if}
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
+
       {#if user}
         <Button variant="ghost" href="/documents" class="hidden sm:inline-flex">
           <FileText class="mr-2 h-4 w-4" />

@@ -66,6 +66,16 @@
   }
 }
 
+/* [*] Smooth theme transition for all elements */
+html,
+body,
+.bg-background,
+.bg-card,
+.bg-popover,
+.text-foreground {
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
 /* Dark mode */
 .dark {
   --color-background: oklch(0.145 0 0);

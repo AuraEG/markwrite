@@ -113,46 +113,54 @@
   }
 
   .preview-content :global(blockquote) {
-    border-left: 3px solid var(--border);
+    border-left: 3px solid var(--color-border);
     padding-left: 1rem;
     margin: 1rem 0;
-    color: var(--muted-foreground);
+    color: var(--color-muted-foreground);
     font-style: italic;
   }
 
+  /* [*] Inline code styling */
   .preview-content :global(code) {
-    background-color: var(--muted);
+    background-color: var(--color-muted);
+    color: var(--color-foreground);
     padding: 0.125rem 0.375rem;
     border-radius: 0.25rem;
     font-size: 0.875rem;
     font-family: ui-monospace, monospace;
   }
 
+  /* [*] Code blocks - GitHub-style dark background */
   .preview-content :global(pre) {
-    background-color: var(--muted);
+    background-color: #1e1e1e;
+    color: #d4d4d4;
     padding: 1rem;
     border-radius: 0.5rem;
     overflow-x: auto;
     margin: 1rem 0;
+    border: 1px solid var(--color-border);
   }
 
   .preview-content :global(pre code) {
     background: none;
     padding: 0;
+    color: inherit;
   }
 
   .preview-content :global(hr) {
     border: none;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--color-border);
     margin: 1.5rem 0;
   }
 
+  /* [*] Links - Blue color for visibility */
   .preview-content :global(a) {
-    color: var(--primary);
+    color: #3b82f6;
     text-decoration: underline;
   }
 
   .preview-content :global(a:hover) {
+    color: #60a5fa;
     text-decoration: none;
   }
 
@@ -169,7 +177,7 @@
     margin: 0.125rem;
   }
 
-  /* [*] Tables styling */
+  /* [*] Tables styling - Dark mode friendly */
   .preview-content :global(table) {
     width: 100%;
     border-collapse: collapse;
@@ -178,13 +186,18 @@
 
   .preview-content :global(th),
   .preview-content :global(td) {
-    border: 1px solid var(--border);
+    border: 1px solid var(--color-border);
     padding: 0.5rem 0.75rem;
     text-align: left;
   }
 
   .preview-content :global(th) {
-    background-color: var(--muted);
+    background-color: var(--color-muted);
+    color: var(--color-foreground);
     font-weight: 600;
+  }
+
+  .preview-content :global(tr:nth-child(even)) {
+    background-color: var(--color-muted);
   }
 </style>
