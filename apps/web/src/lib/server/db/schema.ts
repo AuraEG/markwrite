@@ -107,6 +107,7 @@ export const documentVersions = pgTable(
       .notNull()
       .references(() => documents.id, { onDelete: 'cascade' }),
     yjsSnapshot: text('yjs_snapshot').notNull(), // Base64 encoded snapshot
+    label: text('label'), // Optional user-defined label for the version
     createdBy: text('created_by').references(() => users.id),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },

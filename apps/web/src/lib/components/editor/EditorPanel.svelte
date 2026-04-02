@@ -70,6 +70,8 @@
   let ytext: Y.Text | null = $state(null);
   let provider: HocuspocusProvider | null = null;
   let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+  let versionSaveInterval: ReturnType<typeof setInterval> | null = null;
+  let lastVersionSave: Date = new Date();
   let isMounted = false;
   let editorRef: MarkdownEditor | null = null;
   let syncStatus = $state<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
@@ -185,6 +187,14 @@
       });
     }
 
+    // [*] Start auto-save version interval (every 5 minutes)
+    versionSaveInterval = setInterval(
+      async () => {
+        await saveVersion();
+      },
+      5 * 60 * 1000
+    );
+
     // [*] Notify parent of initial content
     if (onContentUpdate) {
       onContentUpdate(content);
@@ -193,6 +203,11 @@
 
   onDestroy(() => {
     isMounted = false;
+
+    // [*] Clear version save interval
+    if (versionSaveInterval) {
+      clearInterval(versionSaveInterval);
+    }
 
     // [*] Final save before destroy
     if (saveTimeout) {
@@ -213,6 +228,51 @@
       ydoc.destroy();
     }
   });
+
+  // --------------------------------------------------------------------------
+  // [SECTION] Version Save
+  // --------------------------------------------------------------------------
+
+  async function saveVersion() {
+    if (!ydoc || !isMounted) return;
+
+    // [*] Don't save empty documents
+    if (!content || content.trim().length === 0) return;
+
+    // [*] Don't save too frequently (minimum 1 minute between saves)
+    const now = new Date();
+    const timeSinceLastSave = now.getTime() - lastVersionSave.getTime();
+    if (timeSinceLastSave < 60000) {
+      return;
+    }
+
+    try {
+      const yjsSnapshot = encodeYjsState(ydoc);
+
+      const response = await fetch(`/api/documents/${documentId}/versions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ yjsSnapshot }),
+      });
+
+      if (response.ok) {
+        lastVersionSave = now;
+        console.log('[*] Version saved automatically');
+      }
+    } catch (error) {
+      console.error('[!] Failed to save version:', error);
+    }
+  }
+
+  // [*] Handle Ctrl+S / Cmd+S to manually save a version
+  function handleKeyDown(event: KeyboardEvent) {
+    if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+      event.preventDefault();
+      // [*] Force save by resetting lastVersionSave
+      lastVersionSave = new Date(0);
+      saveVersion();
+    }
+  }
 
   // --------------------------------------------------------------------------
   // [SECTION] Handlers
@@ -316,6 +376,8 @@
     editorRef?.focus();
   }
 </script>
+
+<svelte:window onkeydown={handleKeyDown} />
 
 <!-- -------------------------------------------------------------------------- -->
 <!-- [SECTION] Editor Panel -->
