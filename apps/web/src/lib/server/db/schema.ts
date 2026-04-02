@@ -6,9 +6,10 @@
 //
 // Author  : AuraEG Team
 // Created : 2026-03-24
+// Updated : 2026-04-02 - Added user_settings table
 // ==========================================================================
 
-import { pgTable, text, timestamp, boolean, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, index, integer } from 'drizzle-orm/pg-core';
 
 // --------------------------------------------------------------------------
 // [SECTION] User & Session Tables (Lucia Auth Compatible)
@@ -30,6 +31,29 @@ export const sessions = pgTable('sessions', {
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+});
+
+// --------------------------------------------------------------------------
+// [SECTION] User Settings Table
+// --------------------------------------------------------------------------
+
+export const userSettings = pgTable('user_settings', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  // Editor preferences
+  theme: text('theme', { enum: ['light', 'dark', 'system'] })
+    .default('system')
+    .notNull(),
+  fontSize: integer('font_size').default(14).notNull(),
+  fontFamily: text('font_family').default('mono').notNull(),
+  tabSize: integer('tab_size').default(2).notNull(),
+  lineWrapping: boolean('line_wrapping').default(true).notNull(),
+  autoSaveInterval: integer('auto_save_interval').default(30).notNull(), // seconds
+  spellCheck: boolean('spell_check').default(false).notNull(),
+  showLineNumbers: boolean('show_line_numbers').default(true).notNull(),
+  // Timestamps
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
 // --------------------------------------------------------------------------
@@ -98,6 +122,8 @@ export const documentVersions = pgTable(
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
+export type UserSettings = typeof userSettings.$inferSelect;
+export type NewUserSettings = typeof userSettings.$inferInsert;
 export type Document = typeof documents.$inferSelect;
 export type NewDocument = typeof documents.$inferInsert;
 export type DocumentCollaborator = typeof documentCollaborators.$inferSelect;

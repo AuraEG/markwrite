@@ -22,6 +22,11 @@
     readonly?: boolean;
     placeholder?: string;
     theme?: 'light' | 'dark';
+    fontSize?: number;
+    fontFamily?: string;
+    tabSize?: number;
+    lineWrapping?: boolean;
+    spellCheck?: boolean;
     onContentChange?: (content: string) => void;
   }
 
@@ -30,6 +35,11 @@
     readonly = false,
     placeholder = 'Start writing markdown...',
     theme = 'light',
+    fontSize = 14,
+    fontFamily = 'mono',
+    tabSize = 2,
+    lineWrapping = true,
+    spellCheck = false,
     onContentChange,
   }: Props = $props();
 
@@ -51,6 +61,20 @@
   let lightThemeExtension: any = null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let darkThemeExtension: any = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let styleCompartment: any = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let tabSizeCompartment: any = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let lineWrappingCompartment: any = null;
+
+  // [*] Font family mapping
+  const fontFamilies: Record<string, string> = {
+    mono: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+    jetbrains: '"JetBrains Mono", ui-monospace, monospace',
+    fira: '"Fira Code", ui-monospace, monospace',
+    source: '"Source Code Pro", ui-monospace, monospace',
+  };
 
   // --------------------------------------------------------------------------
   // [SECTION] Lifecycle
@@ -86,14 +110,15 @@
     // [SECTION] Custom Light Theme with Selection
     // --------------------------------------------------------------------------
 
-    const lightTheme = EditorView.theme({
+    // [*] Create dynamic style extension that reads CSS custom properties
+    const dynamicStyles = EditorView.theme({
       '&': {
         backgroundColor: 'transparent',
         height: '100%',
       },
       '.cm-content': {
-        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-        fontSize: '14px',
+        fontFamily: fontFamilies[fontFamily] || fontFamilies.mono,
+        fontSize: `${fontSize}px`,
         lineHeight: '1.6',
         padding: '1rem 0',
         caretColor: 'hsl(var(--primary))',
@@ -134,6 +159,8 @@
       },
     });
 
+    const lightTheme = dynamicStyles;
+
     // [*] Store theme extensions for reconfiguration
     lightThemeExtension = lightTheme;
     darkThemeExtension = oneDark;
@@ -160,10 +187,20 @@
     const { Compartment } = await import('@codemirror/state');
     const themeCompartment = new Compartment();
 
+    // [*] Create compartments for dynamic settings
+    styleCompartment = new Compartment();
+    tabSizeCompartment = new Compartment();
+    lineWrappingCompartment = new Compartment();
+
     // [*] Store compartment reference for theme switching
     (
       editorContainer as HTMLElement & { themeCompartment?: typeof themeCompartment }
     ).themeCompartment = themeCompartment;
+
+    // [*] Store style compartment for settings updates
+    (
+      editorContainer as HTMLElement & { styleCompartment?: typeof styleCompartment }
+    ).styleCompartment = styleCompartment;
 
     // --------------------------------------------------------------------------
     // [SECTION] Create Editor
@@ -177,17 +214,20 @@
       history(),
       keymap.of([...defaultKeymap, ...historyKeymap]),
       cmPlaceholder(placeholder),
-      EditorView.lineWrapping,
+      lineWrappingCompartment.of(lineWrapping ? EditorView.lineWrapping : []),
+      tabSizeCompartment.of(EditorState.tabSize.of(tabSize)),
       drawSelection(),
       syntaxHighlighting(defaultHighlightStyle),
       syntaxHighlighting(markdownHighlight),
       EditorState.readOnly.of(readonly),
-      themeCompartment.of(theme === 'dark' ? oneDark : lightTheme),
+      styleCompartment.of(lightTheme),
+      themeCompartment.of(theme === 'dark' ? oneDark : []),
       EditorView.updateListener.of((update) => {
         if (update.docChanged && onContentChange) {
           onContentChange(update.state.doc.toString());
         }
       }),
+      EditorView.contentAttributes.of({ spellcheck: spellCheck ? 'true' : 'false' }),
     ];
 
     editorView = new EditorView({
