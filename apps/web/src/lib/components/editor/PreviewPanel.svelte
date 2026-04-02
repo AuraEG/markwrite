@@ -3,18 +3,22 @@
   // File    : PreviewPanel.svelte
   // Project : MarkWrite
   // Layer   : Presentation
-  // Purpose : Live preview panel that renders Markdown with syntax highlighting.
+  // Purpose : Live preview panel that renders Markdown with syntax highlighting
+  //           and LaTeX math rendering using KaTeX.
   //
   // Author  : AuraEG Team
   // Created : 2026-03-25
   // Updated : 2026-03-26 - Full markdown and HTML rendering support
   // Updated : 2026-04-02 - Added syntax highlighting with highlight.js
+  // Updated : 2026-04-02 - Added KaTeX math rendering support
   // ==========================================================================
 
   import { browser } from '$app/environment';
   import { marked } from 'marked';
   import { onMount } from 'svelte';
   import hljs from 'highlight.js/lib/core';
+  import katex from 'katex';
+  import 'katex/dist/katex.min.css';
 
   // [*] Import common languages for syntax highlighting
   import javascript from 'highlight.js/lib/languages/javascript';
@@ -162,6 +166,52 @@
   marked.use({ renderer });
 
   // --------------------------------------------------------------------------
+  // [SECTION] KaTeX Math Rendering
+  // --------------------------------------------------------------------------
+
+  /**
+   * Renders LaTeX math expressions using KaTeX.
+   * Supports both inline ($...$) and display ($$...$$) modes.
+   *
+   * @param text - The input text with LaTeX expressions
+   * @returns The text with rendered KaTeX HTML
+   */
+  function renderMath(text: string): string {
+    // [*] Process display math first ($$...$$) to avoid conflicts with inline
+    text = text.replace(/\$\$([\s\S]+?)\$\$/g, (_, math) => {
+      try {
+        return katex.renderToString(math.trim(), {
+          displayMode: true,
+          throwOnError: false,
+          trust: true,
+          strict: false,
+        });
+      } catch (error) {
+        console.warn('[PreviewPanel] KaTeX display math error:', error);
+        return `<span class="katex-error" title="Invalid LaTeX">$$${math}$$</span>`;
+      }
+    });
+
+    // [*] Process inline math ($...$)
+    // Use negative lookbehind to avoid matching escaped dollars or $$
+    text = text.replace(/(?<!\$)\$(?!\$)([^$\n]+?)\$(?!\$)/g, (_, math) => {
+      try {
+        return katex.renderToString(math.trim(), {
+          displayMode: false,
+          throwOnError: false,
+          trust: true,
+          strict: false,
+        });
+      } catch (error) {
+        console.warn('[PreviewPanel] KaTeX inline math error:', error);
+        return `<span class="katex-error" title="Invalid LaTeX">$${math}$</span>`;
+      }
+    });
+
+    return text;
+  }
+
+  // --------------------------------------------------------------------------
   // [SECTION] Content Processing
   // --------------------------------------------------------------------------
 
@@ -171,7 +221,12 @@
     }
 
     try {
-      const html = marked.parse(markdown) as string;
+      // [*] Step 1: Render math expressions before markdown parsing
+      // This preserves LaTeX syntax that might be altered by markdown processing
+      const withMath = renderMath(markdown);
+
+      // [*] Step 2: Parse markdown to HTML
+      const html = marked.parse(withMath) as string;
       return html;
     } catch (error) {
       console.error('[PreviewPanel] Render failed:', error);
@@ -560,5 +615,55 @@
 
   .preview-content :global(tr:nth-child(even)) {
     background-color: var(--color-muted);
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /* [SECTION] KaTeX Math Styling */
+  /* -------------------------------------------------------------------------- */
+
+  /* [*] Display math - centered block equations */
+  .preview-content :global(.katex-display) {
+    display: block;
+    text-align: center;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.5rem 0;
+  }
+
+  .preview-content :global(.katex-display > .katex) {
+    display: inline-block;
+    text-align: initial;
+  }
+
+  /* [*] Inline math */
+  .preview-content :global(.katex) {
+    font-size: 1.1em;
+    color: inherit;
+  }
+
+  /* [*] Dark mode adjustments for KaTeX */
+  :global(.dark) .preview-content :global(.katex) {
+    color: #e5e7eb;
+  }
+
+  :global(.dark) .preview-content :global(.katex-display) {
+    background-color: rgba(30, 30, 30, 0.3);
+    border-radius: 0.375rem;
+  }
+
+  /* [*] Error styling for invalid LaTeX */
+  .preview-content :global(.katex-error) {
+    color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.1);
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.875rem;
+    border: 1px dashed #ef4444;
+  }
+
+  :global(.dark) .preview-content :global(.katex-error) {
+    background-color: rgba(239, 68, 68, 0.2);
   }
 </style>
