@@ -126,6 +126,7 @@
   <!-- -------------------------------------------------------------------------- -->
   <EditorHeader
     title={data.document.title}
+    documentId={data.document.id}
     {canEdit}
     {isOwner}
     {isSaving}

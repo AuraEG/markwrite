@@ -16,6 +16,7 @@
   import * as Avatar from '$lib/components/ui/avatar';
   import * as Tooltip from '$lib/components/ui/tooltip';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+  import VersionHistoryDialog from './VersionHistoryDialog.svelte';
   import ArrowLeft from '@lucide/svelte/icons/arrow-left';
   import Share2 from '@lucide/svelte/icons/share-2';
   import History from '@lucide/svelte/icons/history';
@@ -50,6 +51,7 @@
 
   interface Props {
     title: string;
+    documentId: string;
     canEdit: boolean;
     isOwner: boolean;
     isSaving: boolean;
@@ -64,6 +66,7 @@
 
   let {
     title,
+    documentId,
     canEdit,
     isOwner,
     isSaving,
@@ -82,6 +85,7 @@
 
   let isEditingTitle = $state(false);
   let editedTitle = $state('');
+  let versionHistoryOpen = $state(false);
 
   // [*] Sync editedTitle with prop when not editing
   $effect(() => {
@@ -449,7 +453,12 @@ ${html}
 
     <Tooltip.Root>
       <Tooltip.Trigger>
-        <Button variant="ghost" size="icon" class="h-9 w-9">
+        <Button
+          variant="ghost"
+          size="icon"
+          class="h-9 w-9"
+          onclick={() => (versionHistoryOpen = true)}
+        >
           <History class="h-4 w-4" />
         </Button>
       </Tooltip.Trigger>
@@ -477,3 +486,5 @@ ${html}
     </DropdownMenu.Root>
   </div>
 </header>
+
+<VersionHistoryDialog {documentId} bind:open={versionHistoryOpen} />
