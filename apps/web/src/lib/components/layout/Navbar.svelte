@@ -15,7 +15,6 @@
   import * as Avatar from '$lib/components/ui/avatar';
   import FileText from '@lucide/svelte/icons/file-text';
   import LogOut from '@lucide/svelte/icons/log-out';
-  import User from '@lucide/svelte/icons/user';
   import Settings from '@lucide/svelte/icons/settings';
   import Sun from '@lucide/svelte/icons/sun';
   import Moon from '@lucide/svelte/icons/moon';
@@ -120,11 +119,10 @@
             </DropdownMenu.Label>
             <DropdownMenu.Separator />
             <DropdownMenu.Group>
-              <DropdownMenu.Item>
-                <User class="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item>
+              <DropdownMenu.Item
+                class="cursor-pointer"
+                onclick={() => (window.location.href = '/settings')}
+              >
                 <Settings class="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenu.Item>

@@ -8,15 +8,18 @@
   // Author  : AuraEG Team
   // Created : 2026-03-25
   // Updated : 2026-03-27 - Added optional real-time collaboration toggle
+  // Updated : 2026-04-02 - Added user settings integration
   // ==========================================================================
 
   import { fly, fade } from 'svelte/transition';
+  import { onMount } from 'svelte';
   import { Button } from '$lib/components/ui/button';
   import * as Tooltip from '$lib/components/ui/tooltip';
   import { EditorHeader, EditorPanel, PreviewPanel } from '$lib/components/editor';
   import CollaboratorsList from '$lib/components/editor/CollaboratorsList.svelte';
   import ShareDialog from '$lib/components/editor/ShareDialog.svelte';
   import { saveDocumentState } from '$lib/collaboration';
+  import { settingsStore } from '$lib/stores/settings.svelte';
   import Eye from '@lucide/svelte/icons/eye';
   import EyeOff from '@lucide/svelte/icons/eye-off';
   import Pencil from '@lucide/svelte/icons/pencil';
@@ -44,6 +47,15 @@
   let editorKey = $state(0);
   let collaborators = $state<Array<{ id: string; username: string }>>([]);
   let showShareDialog = $state(false);
+
+  // --------------------------------------------------------------------------
+  // [SECTION] Lifecycle
+  // --------------------------------------------------------------------------
+
+  onMount(async () => {
+    // [*] Load user settings
+    await settingsStore.loadSettings();
+  });
 
   // --------------------------------------------------------------------------
   // [SECTION] Derived State
@@ -213,7 +225,10 @@
         in:fly={{ x: 50, duration: 200 }}
         out:fly={{ x: 50, duration: 150 }}
       >
-        <PreviewPanel content={markdownContent} />
+        <PreviewPanel
+          content={markdownContent}
+          showLineNumbers={settingsStore.settings.showLineNumbers}
+        />
       </div>
     {/if}
   </main>

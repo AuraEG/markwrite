@@ -7,7 +7,7 @@
     children?: Snippet;
   }
 
-  let { value = $bindable('edit'), children }: Props = $props();
+  let { value = $bindable(), children }: Props = $props();
 </script>
 
 <SelectPrimitive.Root type="single" bind:value>

@@ -9,6 +9,7 @@
   // Created : 2026-03-25
   // Updated : 2026-03-27 - Added Hocuspocus WebSocket sync support
   // Updated : 2026-03-31 - Added theme support for dark mode
+  // Updated : 2026-04-02 - Added user settings integration
   // ==========================================================================
 
   import { onMount, onDestroy } from 'svelte';
@@ -24,6 +25,7 @@
   import MarkdownEditor from './MarkdownEditor.svelte';
   import MarkdownToolbar from './MarkdownToolbar.svelte';
   import { themeStore } from '$lib/stores/theme.svelte';
+  import { settingsStore } from '$lib/stores/settings.svelte';
 
   // --------------------------------------------------------------------------
   // [SECTION] Props
@@ -77,8 +79,11 @@
   // [SECTION] Lifecycle
   // --------------------------------------------------------------------------
 
-  onMount(() => {
+  onMount(async () => {
     isMounted = true;
+
+    // [*] Load user settings from API
+    await settingsStore.loadSettings();
 
     // [*] Cache props at mount time to avoid reactivity warnings
     const cachedInitialContent = initialContent;
@@ -328,6 +333,11 @@
       {readonly}
       {placeholder}
       theme={themeStore.resolvedTheme}
+      fontSize={settingsStore.settings.fontSize}
+      fontFamily={settingsStore.settings.fontFamily}
+      tabSize={settingsStore.settings.tabSize}
+      lineWrapping={settingsStore.settings.lineWrapping}
+      spellCheck={settingsStore.settings.spellCheck}
       onContentChange={handleContentChange}
     />
   </div>
