@@ -148,6 +148,9 @@ importers:
       drizzle-orm:
         specifier: ^0.30.0
         version: 0.30.10(postgres@3.4.8)
+      highlight.js:
+        specifier: ^11.11.1
+        version: 11.11.1
       lucia:
         specifier: ^3.2.0
         version: 3.2.2
@@ -2265,6 +2268,10 @@ packages:
 
   heap@0.2.7:
     resolution: {integrity: sha512-2bsegYkkHO+h/9MGbn6KWcE45cHZgPANo5LXF7EvWdT0yT2EguSVO1nDgU5c8+ZOPwp2vMNa7YFsJhVcDR9Sdg==}
+
+  highlight.js@11.11.1:
+    resolution: {integrity: sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w==}
+    engines: {node: '>=12.0.0'}
 
   html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
@@ -5663,6 +5670,8 @@ snapshots:
       function-bind: 1.1.2
 
   heap@0.2.7: {}
+
+  highlight.js@11.11.1: {}
 
   html-escaper@2.0.2: {}
 
