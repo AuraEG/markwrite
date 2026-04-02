@@ -110,8 +110,86 @@
     if (!onExportHtml) return;
     const markdown = onExportHtml();
 
-    // [*] Import marked dynamically for HTML export
+    // [*] Import marked and hljs dynamically for HTML export with syntax highlighting
     const { marked } = await import('marked');
+    const hljs = await import('highlight.js/lib/core');
+
+    // [*] Import common languages for export
+    const [
+      javascript,
+      typescript,
+      python,
+      java,
+      cpp,
+      go,
+      rust,
+      ruby,
+      php,
+      sql,
+      xml,
+      css,
+      json,
+      yaml,
+      bash,
+      dockerfile,
+      mdLang,
+    ] = await Promise.all([
+      import('highlight.js/lib/languages/javascript'),
+      import('highlight.js/lib/languages/typescript'),
+      import('highlight.js/lib/languages/python'),
+      import('highlight.js/lib/languages/java'),
+      import('highlight.js/lib/languages/cpp'),
+      import('highlight.js/lib/languages/go'),
+      import('highlight.js/lib/languages/rust'),
+      import('highlight.js/lib/languages/ruby'),
+      import('highlight.js/lib/languages/php'),
+      import('highlight.js/lib/languages/sql'),
+      import('highlight.js/lib/languages/xml'),
+      import('highlight.js/lib/languages/css'),
+      import('highlight.js/lib/languages/json'),
+      import('highlight.js/lib/languages/yaml'),
+      import('highlight.js/lib/languages/bash'),
+      import('highlight.js/lib/languages/dockerfile'),
+      import('highlight.js/lib/languages/markdown'),
+    ]);
+
+    // Register languages
+    hljs.default.registerLanguage('javascript', javascript.default);
+    hljs.default.registerLanguage('js', javascript.default);
+    hljs.default.registerLanguage('typescript', typescript.default);
+    hljs.default.registerLanguage('ts', typescript.default);
+    hljs.default.registerLanguage('python', python.default);
+    hljs.default.registerLanguage('java', java.default);
+    hljs.default.registerLanguage('cpp', cpp.default);
+    hljs.default.registerLanguage('go', go.default);
+    hljs.default.registerLanguage('rust', rust.default);
+    hljs.default.registerLanguage('ruby', ruby.default);
+    hljs.default.registerLanguage('php', php.default);
+    hljs.default.registerLanguage('sql', sql.default);
+    hljs.default.registerLanguage('xml', xml.default);
+    hljs.default.registerLanguage('html', xml.default);
+    hljs.default.registerLanguage('css', css.default);
+    hljs.default.registerLanguage('json', json.default);
+    hljs.default.registerLanguage('yaml', yaml.default);
+    hljs.default.registerLanguage('bash', bash.default);
+    hljs.default.registerLanguage('sh', bash.default);
+    hljs.default.registerLanguage('dockerfile', dockerfile.default);
+    hljs.default.registerLanguage('markdown', mdLang.default);
+
+    // [*] Custom renderer with syntax highlighting for export
+    const renderer = new marked.Renderer();
+    renderer.code = ({ text, lang }: { text: string; lang?: string }) => {
+      const language = lang && hljs.default.getLanguage(lang) ? lang : 'plaintext';
+      let highlighted: string;
+      try {
+        highlighted = hljs.default.highlight(text, { language, ignoreIllegals: true }).value;
+      } catch {
+        highlighted = text;
+      }
+      return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`;
+    };
+
+    marked.use({ renderer });
     const html = marked.parse(markdown) as string;
 
     const fullHtml = `<!DOCTYPE html>
@@ -128,15 +206,28 @@
     p { margin: 0.75rem 0; }
     ul, ol { padding-left: 1.5rem; }
     blockquote { border-left: 3px solid #ccc; padding-left: 1rem; font-style: italic; color: #666; }
-    code { background: #f4f4f4; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-family: monospace; }
-    pre { background: #f4f4f4; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
-    pre code { background: none; padding: 0; }
+    code { background: #f4f4f4; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-family: ui-monospace, monospace; font-size: 0.875rem; }
+    pre { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; border: 1px solid #333; }
+    pre code { background: none; padding: 0; color: inherit; display: block; }
     img { max-width: 100%; height: auto; }
     table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
     th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
     th { background: #f4f4f4; font-weight: 600; }
-    a { color: #0066cc; }
+    a { color: #3b82f6; }
     hr { border: none; border-top: 1px solid #ddd; margin: 1.5rem 0; }
+    /* Syntax highlighting - VS Code Dark theme */
+    .hljs-comment, .hljs-quote { color: #6a9955; font-style: italic; }
+    .hljs-keyword, .hljs-selector-tag, .hljs-literal { color: #569cd6; }
+    .hljs-name, .hljs-selector-id, .hljs-selector-class, .hljs-variable { color: #9cdcfe; }
+    .hljs-string, .hljs-doctag { color: #ce9178; }
+    .hljs-title, .hljs-section, .hljs-type { color: #4ec9b0; }
+    .hljs-tag, .hljs-attr { color: #9cdcfe; }
+    .hljs-attribute, .hljs-symbol, .hljs-bullet, .hljs-built_in { color: #dcdcaa; }
+    .hljs-number { color: #b5cea8; }
+    .hljs-meta { color: #d7ba7d; }
+    .hljs-function { color: #dcdcaa; }
+    .hljs-params { color: #9cdcfe; }
+    .hljs-property { color: #9cdcfe; }
   </style>
 </head>
 <body>
