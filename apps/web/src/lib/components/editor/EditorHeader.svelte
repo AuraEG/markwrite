@@ -110,9 +110,10 @@
     if (!onExportHtml) return;
     const markdown = onExportHtml();
 
-    // [*] Import marked and hljs dynamically for HTML export with syntax highlighting
+    // [*] Import marked, hljs, and katex dynamically for HTML export
     const { marked } = await import('marked');
     const hljs = await import('highlight.js/lib/core');
+    const katex = await import('katex');
 
     // [*] Import common languages for export
     const [
@@ -176,6 +177,33 @@
     hljs.default.registerLanguage('dockerfile', dockerfile.default);
     hljs.default.registerLanguage('markdown', mdLang.default);
 
+    // [*] Math rendering function for export
+    function renderMath(text: string): string {
+      // Display math ($$...$$)
+      text = text.replace(/\$\$([\s\S]+?)\$\$/g, (_, math) => {
+        try {
+          return katex.default.renderToString(math.trim(), {
+            displayMode: true,
+            throwOnError: false,
+          });
+        } catch {
+          return `<span class="katex-error">$$${math}$$</span>`;
+        }
+      });
+      // Inline math ($...$)
+      text = text.replace(/(?<!\$)\$(?!\$)([^$\n]+?)\$(?!\$)/g, (_, math) => {
+        try {
+          return katex.default.renderToString(math.trim(), {
+            displayMode: false,
+            throwOnError: false,
+          });
+        } catch {
+          return `<span class="katex-error">$${math}$</span>`;
+        }
+      });
+      return text;
+    }
+
     // [*] Custom renderer with syntax highlighting for export
     const renderer = new marked.Renderer();
     renderer.code = ({ text, lang }: { text: string; lang?: string }) => {
@@ -190,7 +218,10 @@
     };
 
     marked.use({ renderer });
-    const html = marked.parse(markdown) as string;
+
+    // [*] Process math before markdown
+    const withMath = renderMath(markdown);
+    const html = marked.parse(withMath) as string;
 
     const fullHtml = `<!DOCTYPE html>
 <html lang="en">
@@ -198,6 +229,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <style>
     body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
     h1 { font-size: 2rem; font-weight: 700; margin-top: 1.5rem; }
@@ -228,6 +260,9 @@
     .hljs-function { color: #dcdcaa; }
     .hljs-params { color: #9cdcfe; }
     .hljs-property { color: #9cdcfe; }
+    /* KaTeX styling */
+    .katex-display { display: block; text-align: center; margin: 1.5rem 0; }
+    .katex-error { color: #ef4444; background: rgba(239,68,68,0.1); padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-family: monospace; }
   </style>
 </head>
 <body>

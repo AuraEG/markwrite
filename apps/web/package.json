@@ -78,6 +78,7 @@
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.30.0",
     "highlight.js": "^11.11.1",
+    "katex": "^0.16.44",
     "lucia": "^3.2.0",
     "marked": "^17.0.5",
     "nanoid": "^5.1.7",
