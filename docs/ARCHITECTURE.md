@@ -405,7 +405,7 @@ erDiagram
     }
 
     user_settings {
-        text user_id PK_FK "References users.id"
+        text user_id PK, FK "References users.id"
         text theme "light|dark|system"
         int font_size "12-24"
         text font_family "mono|jetbrains|fira|source"
@@ -431,8 +431,8 @@ erDiagram
     }
 
     document_collaborators {
-        text document_id PK_FK "References documents.id"
-        text user_id PK_FK "References users.id"
+        text document_id PK, FK "References documents.id"
+        text user_id PK, FK "References users.id"
         text permission "view|edit"
     }
 
