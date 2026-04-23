@@ -236,7 +236,7 @@ technology that enables:
 | ORM            | Drizzle                             |
 | Auth           | Lucia (session-based, GitHub OAuth) |
 | Hosting Web    | Vercel                              |
-| Hosting WS     | Railway                             |
+| Hosting WS     | Hugging Face Spaces                 |
 | CI/CD          | GitHub Actions                      |
 | Error Tracking | Sentry                              |
 | Coverage       | Codecov                             |
@@ -282,7 +282,7 @@ The first release is complete when:
 [*] User can generate a shareable link with edit/view permissions
 [*] Document state persists across browser sessions
 [*] User can download document as Markdown file
-[*] Application is deployed to production (Vercel + Railway)
+[*] Application is deployed to production (Vercel + Hugging Face Spaces)
 [*] CI passes lint, format, test, and build checks
 [*] Test coverage >= 70%
 ```

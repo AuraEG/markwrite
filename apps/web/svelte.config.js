@@ -1,11 +1,22 @@
-import adapter from '@sveltejs/adapter-node';
+import adapterVercel from '@sveltejs/adapter-vercel';
+import adapterNode from '@sveltejs/adapter-node';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+
+// Use Vercel adapter when building on Vercel, Node adapter for other environments.
+// `VERCEL_ENV` is included because some build pipelines do not expose `VERCEL=1`.
+const isVercel = process.env.VERCEL === '1' || typeof process.env.VERCEL_ENV === 'string';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   preprocess: vitePreprocess(),
   kit: {
-    adapter: adapter(),
+    adapter: isVercel
+      ? adapterVercel({
+          runtime: 'nodejs20.x',
+          regions: ['iad1'], // US East (Virginia) - closest to typical users
+          split: false // Keep as single function for simplicity
+        })
+      : adapterNode(),
     alias: {
       $components: 'src/lib/components',
       $server: 'src/lib/server',

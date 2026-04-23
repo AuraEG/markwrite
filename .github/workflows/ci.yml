@@ -61,7 +61,7 @@ jobs:
 
       - name: Run type check
         run: pnpm typecheck
-        continue-on-error: true  # [*] bits-ui types have known issues with Svelte 5
+        continue-on-error: true # [*] bits-ui types have known issues with Svelte 5
 
   test:
     name: Test
@@ -121,3 +121,79 @@ jobs:
         run: pnpm build
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  # ==========================================================================
+  # Deployment Jobs (only on main branch push)
+  # ==========================================================================
+
+  deploy-web:
+    name: Deploy Web App
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        id: deploy
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./apps/web
+
+  deploy-sync:
+    name: Deploy Sync Server
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.HF_TOKEN != '' && secrets.HF_USERNAME != '' && secrets.HF_SPACE_NAME != ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to Hugging Face Space
+        run: |
+          chmod +x scripts/deploy-sync-to-hf.sh
+          scripts/deploy-sync-to-hf.sh
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ secrets.HF_USERNAME }}
+          HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+
+  # ==========================================================================
+  # Database Migration (on main branch only)
+  # ==========================================================================
+
+  migrate-database:
+    name: Run Database Migrations
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run migrations
+        run: pnpm --filter @markwrite/web db:push
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
