@@ -720,12 +720,12 @@ flowchart TB
         Serverless["Serverless Functions<br/>━━━━━━━━━━<br/>SvelteKit API routes<br/>Server-side rendering"]
     end
 
-    subgraph Railway["Railway Platform"]
+    subgraph HF["Hugging Face Spaces"]
         Container["Docker Container<br/>━━━━━━━━━━<br/>Hocuspocus Server<br/>Persistent process"]
     end
 
     subgraph Database["Database Layer"]
-        PG["PostgreSQL<br/>━━━━━━━━━━<br/>Railway managed<br/>or Neon serverless"]
+        PG["PostgreSQL<br/>━━━━━━━━━━<br/>Neon serverless"]
     end
 
     Users -->|"HTTPS"| Edge
@@ -744,11 +744,11 @@ flowchart TB
 
 ### 8.2 Deployment Targets
 
-| Component           | Platform        | Reason                                                        |
-| ------------------- | --------------- | ------------------------------------------------------------- |
-| **Web Application** | Vercel          | Optimized for SvelteKit, global edge network, automatic HTTPS |
-| **Sync Server**     | Railway         | Supports persistent WebSocket connections, Docker containers  |
-| **Database**        | Railway or Neon | Managed PostgreSQL with connection pooling                    |
+| Component           | Platform            | Reason                                                        |
+| ------------------- | ------------------- | ------------------------------------------------------------- |
+| **Web Application** | Vercel              | Optimized for SvelteKit, global edge network, automatic HTTPS |
+| **Sync Server**     | Hugging Face Spaces | No-card Docker hosting with WebSocket support                 |
+| **Database**        | Neon                | Managed PostgreSQL with connection pooling                    |
 
 ### 8.3 Scaling Considerations
 

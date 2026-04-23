@@ -68,18 +68,18 @@ flowchart LR
     Sync --> Backend
 ```
 
-| Layer              | Technology                                    |
-| ------------------ | --------------------------------------------- |
-| **Frontend**       | SvelteKit 2, Svelte 5, TypeScript 5           |
-| **Styling**        | Tailwind CSS 4, shadcn-svelte, tw-animate-css |
-| **Editor**         | Tiptap (ProseMirror-based), CodeMirror 6      |
-| **Sync Engine**    | Yjs (CRDT), y-prosemirror, Hocuspocus         |
-| **Database**       | PostgreSQL 16, Drizzle ORM                    |
-| **Authentication** | Lucia v3, Arctic (GitHub OAuth)               |
-| **Markdown**       | marked, highlight.js, KaTeX                   |
-| **Build**          | Vite, Turbo (monorepo)                        |
-| **Hosting**        | Vercel (web), Railway (sync server)           |
-| **CI/CD**          | GitHub Actions, Codecov                       |
+| Layer              | Technology                                      |
+| ------------------ | ----------------------------------------------- |
+| **Frontend**       | SvelteKit 2, Svelte 5, TypeScript 5             |
+| **Styling**        | Tailwind CSS 4, shadcn-svelte, tw-animate-css   |
+| **Editor**         | Tiptap (ProseMirror-based), CodeMirror 6        |
+| **Sync Engine**    | Yjs (CRDT), y-prosemirror, Hocuspocus           |
+| **Database**       | PostgreSQL 16, Drizzle ORM                      |
+| **Authentication** | Lucia v3, Arctic (GitHub OAuth)                 |
+| **Markdown**       | marked, highlight.js, KaTeX                     |
+| **Build**          | Vite, Turbo (monorepo)                          |
+| **Hosting**        | Vercel (web), Hugging Face Spaces (sync server) |
+| **CI/CD**          | GitHub Actions, Codecov                         |
 
 ---
 

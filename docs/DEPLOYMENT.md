@@ -30,8 +30,8 @@ MarkWrite consists of three deployable components:
 flowchart LR
     subgraph Production
         Web["Web Application<br/>(Vercel)"]
-        Sync["Sync Server<br/>(Railway)"]
-        DB[("PostgreSQL<br/>(Railway/Neon)")]
+        Sync["Sync Server<br/>(Hugging Face Spaces)"]
+        DB[("PostgreSQL<br/>(Neon)")]
     end
 
     Users["Users"] --> Web
@@ -47,8 +47,8 @@ flowchart LR
 | Component       | Recommended Platform | Purpose                                      |
 | --------------- | -------------------- | -------------------------------------------- |
 | Web Application | Vercel               | Frontend, REST API, authentication           |
-| Sync Server     | Railway              | WebSocket server for real-time collaboration |
-| Database        | Railway or Neon      | PostgreSQL data storage                      |
+| Sync Server     | Hugging Face Spaces  | WebSocket server for real-time collaboration |
+| Database        | Neon                 | PostgreSQL data storage                      |
 
 ---
 
@@ -58,7 +58,7 @@ Before deploying, ensure you have:
 
 - [ ] GitHub account with admin access to the repository
 - [ ] Vercel account (free tier works)
-- [ ] Railway account (or alternative for sync server)
+- [ ] Hugging Face account (free tier works, no card required)
 - [ ] GitHub OAuth application created
 - [ ] Domain name (optional, for custom domain)
 
@@ -108,14 +108,7 @@ Create these environment variables in your deployment platform:
 
 ## Database Setup
 
-### Option A: Railway PostgreSQL
-
-1. Create a new project in [Railway](https://railway.app)
-2. Add a PostgreSQL service
-3. Copy the `DATABASE_URL` from the service variables
-4. The URL format is: `postgresql://postgres:password@host:port/railway`
-
-### Option B: Neon Serverless PostgreSQL
+### Neon Serverless PostgreSQL (Recommended)
 
 1. Create an account at [Neon](https://neon.tech)
 2. Create a new project and database
@@ -152,13 +145,13 @@ For production, migrations run automatically on build or can be triggered manual
 
 #### 2. Configure Build Settings
 
-| Setting              | Value          |
-| -------------------- | -------------- |
-| **Framework Preset** | SvelteKit      |
-| **Root Directory**   | `apps/web`     |
-| **Build Command**    | `pnpm build`   |
-| **Output Directory** | `.svelte-kit`  |
-| **Install Command**  | `pnpm install` |
+| Setting              | Value                                                |
+| -------------------- | ---------------------------------------------------- |
+| **Framework Preset** | SvelteKit                                            |
+| **Root Directory**   | `apps/web`                                           |
+| **Build Command**    | `cd ../.. && pnpm --filter @markwrite/web build`     |
+| **Output Directory** | Leave empty (use SvelteKit default output detection) |
+| **Install Command**  | `cd ../.. && pnpm install --frozen-lockfile`         |
 
 #### 3. Set Environment Variables
 
@@ -174,9 +167,9 @@ The repository includes a `vercel.json` (if needed):
 
 ```json
 {
-  "buildCommand": "pnpm build",
-  "installCommand": "pnpm install",
-  "framework": "sveltekit"
+  "framework": "sveltekit",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm --filter @markwrite/web build"
 }
 ```
 
@@ -191,55 +184,78 @@ The repository includes a `vercel.json` (if needed):
 
 ## Sync Server Deployment
 
-### Deploying to Railway
+### Deploying to Hugging Face Spaces (No Card Required)
 
-#### 1. Create Service
+#### 1. Create Space
 
-1. In your Railway project, click **New Service**
-2. Select **Deploy from GitHub repo**
-3. Choose the `markwrite` repository
+1. Go to [Hugging Face Spaces](https://huggingface.co/new-space)
+2. Create a new Space with:
+   - **SDK:** Docker
+   - **Visibility:** Public or Private (your choice)
+   - **Name:** `markwrite-sync`
 
-#### 2. Configure Build
+#### 2. Create Hugging Face Access Token
 
-| Setting            | Value              |
-| ------------------ | ------------------ |
-| **Root Directory** | `apps/sync-server` |
-| **Build Command**  | `pnpm build`       |
-| **Start Command**  | `pnpm start`       |
+1. Go to [Hugging Face Tokens](https://huggingface.co/settings/tokens)
+2. Create a token with **Write** permission
+3. Save it as `HF_TOKEN`
 
-#### 3. Set Environment Variables
+#### 3. Configure GitHub Secrets (for automated deploy)
 
-Add all sync server environment variables.
+In your GitHub repository settings, add:
 
-#### 4. Generate Domain
+| Secret          | Description                                       |
+| --------------- | ------------------------------------------------- |
+| `HF_TOKEN`      | Hugging Face write token                          |
+| `HF_USERNAME`   | Your Hugging Face username                        |
+| `HF_SPACE_NAME` | Space repository name (example: `markwrite-sync`) |
 
-1. Go to **Settings > Networking**
-2. Click **Generate Domain**
-3. Note the URL (e.g., `markwrite-sync.up.railway.app`)
-4. Update the web app's `PUBLIC_SYNC_SERVER_URL` to use `wss://` with this domain
+#### 4. Set Space Environment Variables
 
-### Railway Configuration File
+In your Hugging Face Space **Settings → Variables and Secrets**, set:
 
-Create `railway.toml` in `apps/sync-server/`:
+| Variable                       | Value                                           |
+| ------------------------------ | ----------------------------------------------- |
+| `DATABASE_URL`                 | Neon PostgreSQL connection string               |
+| `NODE_ENV`                     | `production`                                    |
+| `PORT`                         | `10000`                                         |
+| `HOST`                         | `0.0.0.0`                                       |
+| `WEB_APP_URL`                  | Your Vercel URL (`https://your-app.vercel.app`) |
+| `CORS_ORIGINS`                 | Same as `WEB_APP_URL`                           |
+| `MAX_CONNECTIONS_PER_IP`       | `10`                                            |
+| `MAX_CONNECTIONS_PER_DOCUMENT` | `50`                                            |
+| `DEBOUNCE_MS`                  | `2000`                                          |
+| `MAX_DEBOUNCE_MS`              | `10000`                                         |
 
-```toml
-[build]
-builder = "nixpacks"
-buildCommand = "pnpm build"
+#### 5. Deploy Sync Server
 
-[deploy]
-startCommand = "pnpm start"
-healthcheckPath = "/"
-healthcheckTimeout = 300
-restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3
+Automatic path (recommended):
+
+- Push to `main` (CI deploys to your Hugging Face Space when secrets are configured)
+
+Manual path:
+
+```bash
+HF_TOKEN=hf_xxx \
+HF_USERNAME=your-hf-username \
+HF_SPACE_NAME=markwrite-sync \
+./scripts/deploy-sync-to-hf.sh
+```
+
+#### 6. Connect Vercel to Sync Server
+
+Set this variable in Vercel project settings:
+
+```env
+PUBLIC_SYNC_SERVER_URL=wss://<your-hf-space-subdomain>.hf.space
+VITE_SYNC_SERVER_URL=wss://<your-hf-space-subdomain>.hf.space
 ```
 
 ### WebSocket Considerations
 
-- Railway supports WebSocket connections natively
+- Hugging Face Spaces supports WebSocket traffic for Docker Spaces
 - Ensure the domain uses `wss://` (not `ws://`) in production
-- Configure appropriate timeout values for long-lived connections
+- Free hardware sleeps after inactivity, so first connection may be cold-started
 
 ---
 
@@ -291,13 +307,13 @@ Enable Vercel Analytics for:
 - Web Vitals metrics
 - Error tracking
 
-### Railway Metrics
+### Hugging Face Space Logs
 
-Railway provides:
+Hugging Face provides:
 
-- CPU and memory usage
-- Network traffic
-- Build and deploy logs
+- Build logs
+- Runtime logs
+- Container restart status
 
 ### Recommended External Tools
 
@@ -365,6 +381,17 @@ Railway provides:
 3. Verify `pnpm-lock.yaml` is committed
 4. Try clearing cache: **Settings > General > Clear Cache**
 
+#### "No Output Directory named \"node\" found"
+
+**Symptoms:** Build succeeds but deployment fails with missing `node` output directory.
+
+**Solutions:**
+
+1. Set **Root Directory** to `apps/web`
+2. Set **Framework Preset** to `SvelteKit`
+3. Clear **Output Directory** in Vercel project settings (leave it empty)
+4. Redeploy after confirming `apps/web/vercel.json` is committed
+
 ### Log Access
 
 #### Vercel Logs
@@ -372,10 +399,11 @@ Railway provides:
 - **Functions:** Deployment > Functions tab
 - **Runtime:** Deployment > Logs tab
 
-#### Railway Logs
+#### Hugging Face Logs
 
-- Click on the service
-- View logs in real-time or historical
+- Open your Space page
+- Go to **Logs**
+- Check build and runtime output
 
 ### Health Checks
 
@@ -408,7 +436,7 @@ Before going live:
 
 - [ ] All secrets are in environment variables (not committed)
 - [ ] `NODE_ENV=production` is set
-- [ ] HTTPS is enforced (automatic on Vercel/Railway)
+- [ ] HTTPS is enforced (automatic on Vercel/Hugging Face)
 - [ ] CORS origins are restricted to your domains
 - [ ] Rate limiting is configured
 - [ ] Database has restricted access (not public)
@@ -421,7 +449,7 @@ Before going live:
 
 ### Automatic Deployments
 
-Both Vercel and Railway support automatic deployments:
+Both Vercel and Hugging Face support automatic deployments:
 
 - Push to `main` branch triggers production deploy
 - Push to `develop` branch triggers preview/staging deploy
@@ -434,10 +462,14 @@ Both Vercel and Railway support automatic deployments:
 vercel --prod
 ```
 
-**Railway:**
+**Hugging Face (sync server):**
 
-- Trigger from dashboard or CLI
-- Or push to the connected branch
+```bash
+HF_TOKEN=hf_xxx \
+HF_USERNAME=your-hf-username \
+HF_SPACE_NAME=markwrite-sync \
+./scripts/deploy-sync-to-hf.sh
+```
 
 ### Rolling Back
 
@@ -447,8 +479,7 @@ vercel --prod
 2. Find the previous working deployment
 3. Click **Promote to Production**
 
-**Railway:**
+**Hugging Face:**
 
-1. Go to **Deployments**
-2. Click on the previous deployment
-3. Select **Redeploy**
+1. Open your Space repository
+2. Re-run deploy from CI or push an earlier commit via the deploy script

@@ -1,5 +1,16 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "DATABASE_URL",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
+    "PUBLIC_APP_URL",
+    "PUBLIC_SYNC_SERVER_URL",
+    "VITE_SYNC_SERVER_URL",
+    "VERCEL",
+    "VERCEL_ENV",
+    "NODE_ENV"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
