@@ -155,7 +155,6 @@ jobs:
       - name: Deploy to Vercel
         if: steps.vercel-secrets.outputs.skip == 'false'
         id: deploy
-        working-directory: ./apps/web
         run: |
           DEPLOY_URL=$(
             npx --yes vercel@latest deploy --prod --yes --token "${VERCEL_TOKEN}" --no-color \
