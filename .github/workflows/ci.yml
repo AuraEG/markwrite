@@ -155,13 +155,20 @@ jobs:
       - name: Deploy to Vercel
         if: steps.vercel-secrets.outputs.skip == 'false'
         id: deploy
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ env.VERCEL_TOKEN }}
-          vercel-org-id: ${{ env.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ env.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
-          working-directory: ./apps/web
+        working-directory: ./apps/web
+        run: |
+          DEPLOY_URL=$(
+            npx --yes vercel@latest deploy --prod --yes --token "${VERCEL_TOKEN}" --no-color \
+              | grep -Eo 'https://[^ ]+\.vercel\.app' | tail -n 1
+          )
+
+          if [ -z "${DEPLOY_URL}" ]; then
+            echo "Failed to detect Vercel deployment URL from CLI output."
+            exit 1
+          fi
+
+          echo "url=${DEPLOY_URL}" >> "$GITHUB_OUTPUT"
+          echo "Vercel deployment URL: ${DEPLOY_URL}"
 
   deploy-sync:
     name: Deploy Sync Server
