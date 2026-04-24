@@ -12,7 +12,8 @@
   // ==========================================================================
 
   import { fly, fade } from 'svelte/transition';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
+  import { beforeNavigate } from '$app/navigation';
   import { Button } from '$lib/components/ui/button';
   import * as Tooltip from '$lib/components/ui/tooltip';
   import { EditorHeader, EditorPanel, PreviewPanel } from '$lib/components/editor';
@@ -47,14 +48,40 @@
   let editorKey = $state(0);
   let collaborators = $state<Array<{ id: string; username: string }>>([]);
   let showShareDialog = $state(false);
+  let editorPanelRef = $state<EditorPanel | null>(null);
 
   // --------------------------------------------------------------------------
   // [SECTION] Lifecycle
   // --------------------------------------------------------------------------
 
+  function flushEditorState() {
+    if (!editorPanelRef || !canEdit) return;
+    const state = editorPanelRef.getState();
+    if (!state) return;
+    fetch(`/api/documents/${data.document.id}/state`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state }),
+      keepalive: true,
+    }).catch(() => {});
+  }
+
+  function handleBeforeUnload() {
+    flushEditorState();
+  }
+
+  beforeNavigate(() => {
+    flushEditorState();
+  });
+
   onMount(async () => {
     // [*] Load user settings
     await settingsStore.loadSettings();
+    window.addEventListener('beforeunload', handleBeforeUnload);
+  });
+
+  onDestroy(() => {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
   });
 
   // --------------------------------------------------------------------------
@@ -204,6 +231,7 @@
     >
       {#key editorKey}
         <EditorPanel
+          bind:this={editorPanelRef}
           documentId={data.document.id}
           initialState={data.document.yjsState}
           readonly={!canEdit}

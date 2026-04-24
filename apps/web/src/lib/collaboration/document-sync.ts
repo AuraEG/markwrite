@@ -111,6 +111,7 @@ export async function saveDocumentState(
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ state }),
+      keepalive: true,
     });
 
     if (!response.ok) {

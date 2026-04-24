@@ -81,8 +81,20 @@
   // [SECTION] Lifecycle
   // --------------------------------------------------------------------------
 
+  function handleVisibilityChange() {
+    if (document.visibilityState === 'hidden' && ydoc && isMounted && onStateUpdate) {
+      if (saveTimeout) {
+        clearTimeout(saveTimeout);
+        saveTimeout = null;
+      }
+      onStateUpdate(encodeYjsState(ydoc));
+    }
+  }
+
   onMount(async () => {
     isMounted = true;
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // [*] Load user settings from API
     await settingsStore.loadSettings();
@@ -203,6 +215,8 @@
 
   onDestroy(() => {
     isMounted = false;
+
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
 
     // [*] Clear version save interval
     if (versionSaveInterval) {
