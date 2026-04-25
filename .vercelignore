@@ -1,0 +1,7 @@
+.git
+.github
+node_modules/.cache
+.turbo
+coverage
+dist
+build
