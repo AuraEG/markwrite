@@ -43,9 +43,6 @@
     onContentChange,
   }: Props = $props();
 
-  // [*] Track external content changes for reactive updates
-  let externalContent = $derived(content);
-
   // --------------------------------------------------------------------------
   // [SECTION] State
   // --------------------------------------------------------------------------
@@ -55,6 +52,7 @@
   let undoCmd: ((view: EditorView) => boolean) | null = null;
   let redoCmd: ((view: EditorView) => boolean) | null = null;
   let lastAppliedTheme: 'light' | 'dark' | null = null;
+  let isApplyingExternalContent = false;
 
   // [*] Store themes for reconfiguration
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -223,7 +221,7 @@
       styleCompartment.of(lightTheme),
       themeCompartment.of(theme === 'dark' ? oneDark : []),
       EditorView.updateListener.of((update) => {
-        if (update.docChanged && onContentChange) {
+        if (update.docChanged && onContentChange && !isApplyingExternalContent) {
           onContentChange(update.state.doc.toString());
         }
       }),
@@ -249,14 +247,16 @@
 
   // [*] React to external content changes (e.g., from Yjs sync)
   $effect(() => {
-    if (editorView && externalContent !== editorView.state.doc.toString()) {
+    if (editorView && content !== editorView.state.doc.toString()) {
+      isApplyingExternalContent = true;
       editorView.dispatch({
         changes: {
           from: 0,
           to: editorView.state.doc.length,
-          insert: externalContent,
+          insert: content,
         },
       });
+      isApplyingExternalContent = false;
     }
   });
 

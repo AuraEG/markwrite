@@ -6,4 +6,4 @@
 // ==========================================================================
 
 export { lucia } from './lucia';
-export { github, type GitHubUser } from './github';
+export { createGitHub, type GitHubUser } from './github';

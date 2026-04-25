@@ -7,13 +7,26 @@
 
 import { error, redirect } from '@sveltejs/kit';
 import { generateIdFromEntropySize } from 'lucia';
-import { github, lucia, type GitHubUser } from '$lib/server/auth';
+import { createGitHub, lucia, type GitHubUser } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
+  let github: ReturnType<typeof createGitHub>;
+  try {
+    github = createGitHub(url);
+  } catch (err) {
+    console.error('[!] GitHub OAuth configuration error:', err);
+    error(
+      500,
+      err instanceof Error
+        ? err.message
+        : 'GitHub OAuth configuration is invalid for this environment.'
+    );
+  }
+
   // --------------------------------------------------------------------------
   // [SECTION] Validate OAuth State
   // --------------------------------------------------------------------------

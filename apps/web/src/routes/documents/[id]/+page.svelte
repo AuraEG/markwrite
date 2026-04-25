@@ -14,6 +14,7 @@
   import { fly, fade } from 'svelte/transition';
   import { onMount, onDestroy } from 'svelte';
   import { beforeNavigate } from '$app/navigation';
+  import { browser } from '$app/environment';
   import { Button } from '$lib/components/ui/button';
   import * as Tooltip from '$lib/components/ui/tooltip';
   import { EditorHeader, EditorPanel, PreviewPanel } from '$lib/components/editor';
@@ -81,7 +82,9 @@
   });
 
   onDestroy(() => {
-    window.removeEventListener('beforeunload', handleBeforeUnload);
+    if (browser) {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    }
   });
 
   // --------------------------------------------------------------------------
@@ -172,22 +175,27 @@
 
       <!-- Collaboration Toggle -->
       <Tooltip.Root>
-        <Tooltip.Trigger asChild>
-          <Button
-            variant={syncStatus === 'connected' ? 'default' : 'ghost'}
-            size="sm"
-            onclick={toggleCollaboration}
-            class="h-9 gap-2 {syncStatus === 'connected' ? 'bg-green-600 hover:bg-green-700' : ''}"
-          >
-            <Users class="h-4 w-4" />
-            {#if syncStatus === 'connecting'}
-              <span class="text-xs">Connecting...</span>
-            {:else if syncStatus === 'connected'}
-              <span class="text-xs">Live</span>
-            {:else}
-              <span class="text-xs">Collaborate</span>
-            {/if}
-          </Button>
+        <Tooltip.Trigger>
+          {#snippet child({ props })}
+            <Button
+              {...props}
+              variant={syncStatus === 'connected' ? 'default' : 'ghost'}
+              size="sm"
+              onclick={toggleCollaboration}
+              class="h-9 gap-2 {syncStatus === 'connected'
+                ? 'bg-green-600 hover:bg-green-700'
+                : ''}"
+            >
+              <Users class="h-4 w-4" />
+              {#if syncStatus === 'connecting'}
+                <span class="text-xs">Connecting...</span>
+              {:else if syncStatus === 'connected'}
+                <span class="text-xs">Live</span>
+              {:else}
+                <span class="text-xs">Collaborate</span>
+              {/if}
+            </Button>
+          {/snippet}
         </Tooltip.Trigger>
         <Tooltip.Content>
           {collaborationEnabled
@@ -198,19 +206,22 @@
 
       <!-- Preview Toggle -->
       <Tooltip.Root>
-        <Tooltip.Trigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            onclick={() => (showPreview = !showPreview)}
-            class="h-9 w-9"
-          >
-            {#if showPreview}
-              <EyeOff class="h-4 w-4" />
-            {:else}
-              <Eye class="h-4 w-4" />
-            {/if}
-          </Button>
+        <Tooltip.Trigger>
+          {#snippet child({ props })}
+            <Button
+              {...props}
+              variant="ghost"
+              size="icon"
+              onclick={() => (showPreview = !showPreview)}
+              class="h-9 w-9"
+            >
+              {#if showPreview}
+                <EyeOff class="h-4 w-4" />
+              {:else}
+                <Eye class="h-4 w-4" />
+              {/if}
+            </Button>
+          {/snippet}
         </Tooltip.Trigger>
         <Tooltip.Content>
           {showPreview ? 'Hide preview' : 'Show preview'}

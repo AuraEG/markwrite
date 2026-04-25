@@ -76,6 +76,7 @@
   let editorRef: MarkdownEditor | null = null;
   let syncStatus = $state<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
   let isRemoteChange = false; // [*] Flag to prevent echo loops
+  let isInitializing = true;
 
   // --------------------------------------------------------------------------
   // [SECTION] Lifecycle
@@ -95,9 +96,6 @@
     isMounted = true;
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // [*] Load user settings from API
-    await settingsStore.loadSettings();
 
     // [*] Cache props at mount time to avoid reactivity warnings
     const cachedInitialContent = initialContent;
@@ -211,12 +209,19 @@
     if (onContentUpdate) {
       onContentUpdate(content);
     }
+
+    isInitializing = false;
+
+    // [*] Load user settings from API (non-blocking for editor initialization)
+    await settingsStore.loadSettings();
   });
 
   onDestroy(() => {
     isMounted = false;
 
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    if (browser) {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }
 
     // [*] Clear version save interval
     if (versionSaveInterval) {
@@ -293,6 +298,10 @@
   // --------------------------------------------------------------------------
 
   function handleContentChange(newContent: string) {
+    if (isInitializing) {
+      return;
+    }
+
     // [*] Skip if this is an echo from a remote change
     if (isRemoteChange) {
       return;

@@ -169,6 +169,10 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for complete environment configurat
 DATABASE_URL="postgresql://user:password@localhost:5432/markwrite"
 GITHUB_CLIENT_ID="your_client_id"
 GITHUB_CLIENT_SECRET="your_client_secret"
+# Required for localhost sign-in: use a separate local OAuth app
+GITHUB_LOCAL_CLIENT_ID=""
+GITHUB_LOCAL_CLIENT_SECRET=""
+GITHUB_LOCAL_REDIRECT_URI="http://localhost:5173/auth/github/callback"
 PUBLIC_APP_URL="http://localhost:5173"
 PUBLIC_SYNC_SERVER_URL="ws://localhost:1234"
 ```
