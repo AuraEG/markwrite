@@ -50,7 +50,7 @@
             {#snippet child({ props })}
               <div
                 {...props}
-                class="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-xs font-medium text-white dark:border-gray-900 cursor-pointer"
+                class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 border-white text-xs font-medium text-white dark:border-gray-900"
                 style="background-color: {colors.cursor}"
               >
                 {collab.username.charAt(0).toUpperCase()}

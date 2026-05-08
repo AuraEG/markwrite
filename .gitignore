@@ -38,5 +38,11 @@ pnpm-debug.log*
 # Misc
 .vercel/
 
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
 # Drizzle migrations (using db:push workflow)
 drizzle/
+MarkWrite-Conversation-Claude.txt
