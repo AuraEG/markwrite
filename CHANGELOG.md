@@ -9,9 +9,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned for v1.1
+
+- Mobile device optimization
+- Additional OAuth providers (Google, GitLab)
+- Document templates
+- Export to PDF
+- Collaborative cursors with user names
+- Document search and filtering
+- Keyboard shortcuts customization
+
+---
+
+## [1.0.0] - 2026-05-08
+
 ### Added
 
-- Project documentation (README, API docs, architecture, contributing guide)
+- **End-to-End Testing**: Comprehensive Playwright test suite with 21 tests across Chromium, Firefox, and WebKit
+- **Document Compression**: Automatic gzip compression for large documents (>50KB) to handle SvelteKit body size limits
+- **Enhanced Error Handling**: Better error messages and logging for document sync operations
+
+### Fixed
+
+- **SSR Hydration Warnings**: Fixed nested button elements in tooltips using `asChild` prop
+- **Large Document Sync**: Network errors when saving documents >512KB now resolved with compression
+- **Content Loss**: Fixed content disappearing during real-time collaboration by properly handling Yjs state merging
+- **Editor Updates**: Remote changes now properly update the CodeMirror editor view
+- **Unused Variable**: Removed unused `currentState` variable in EditorPanel
+
+### Changed
+
+- **Environment Variables**: Updated sync server URL to use `PUBLIC_SYNC_SERVER_URL` (SvelteKit convention)
+- **Body Size Limits**: Increased to 10MB for Node adapter, 5MB validation in API
+- **Compression Threshold**: Set to 50KB to ensure documents stay well below 512KB limit
+
+### Technical
+
+- Added `pako` library for gzip compression/decompression
+- Enhanced `setContent` method in MarkdownEditor for remote updates
+- Improved Hocuspocus provider with better reconnection settings and logging
+- Added Playwright test scripts: `test:e2e`, `test:e2e:ui`, `test:e2e:headed`, `test:e2e:report`
 
 ---
 
@@ -118,6 +155,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date       | Highlights                             |
 | ------- | ---------- | -------------------------------------- |
+| 1.0.0   | 2026-05-08 | E2E testing, compression, bug fixes    |
 | 0.1.0   | 2026-04-04 | Initial release with full MVP features |
 
 ---
@@ -136,5 +174,6 @@ This is the initial release. No migration required.
 - [Issues](https://github.com/AuraEG/markwrite/issues)
 - [Pull Requests](https://github.com/AuraEG/markwrite/pulls)
 
-[Unreleased]: https://github.com/AuraEG/markwrite/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/AuraEG/markwrite/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/AuraEG/markwrite/releases/tag/v1.0.0
 [0.1.0]: https://github.com/AuraEG/markwrite/releases/tag/v0.1.0
