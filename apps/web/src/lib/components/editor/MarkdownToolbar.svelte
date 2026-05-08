@@ -186,31 +186,37 @@
 <div class="border-border bg-muted/30 flex h-10 items-center gap-0.5 border-b px-2">
   <!-- Undo/Redo -->
   <Tooltip.Root>
-    <Tooltip.Trigger>
-      <Button
-        variant="ghost"
-        size="icon"
-        class="h-8 w-8"
-        disabled={readonly}
-        onclick={() => onUndo?.()}
-      >
-        <Undo class="h-4 w-4" />
-      </Button>
+    <Tooltip.Trigger asChild>
+      {#snippet child({ props })}
+        <Button
+          {...props}
+          variant="ghost"
+          size="icon"
+          class="h-8 w-8"
+          disabled={readonly}
+          onclick={() => onUndo?.()}
+        >
+          <Undo class="h-4 w-4" />
+        </Button>
+      {/snippet}
     </Tooltip.Trigger>
     <Tooltip.Content>Undo</Tooltip.Content>
   </Tooltip.Root>
 
   <Tooltip.Root>
-    <Tooltip.Trigger>
-      <Button
-        variant="ghost"
-        size="icon"
-        class="h-8 w-8"
-        disabled={readonly}
-        onclick={() => onRedo?.()}
-      >
-        <Redo class="h-4 w-4" />
-      </Button>
+    <Tooltip.Trigger asChild>
+      {#snippet child({ props })}
+        <Button
+          {...props}
+          variant="ghost"
+          size="icon"
+          class="h-8 w-8"
+          disabled={readonly}
+          onclick={() => onRedo?.()}
+        >
+          <Redo class="h-4 w-4" />
+        </Button>
+      {/snippet}
     </Tooltip.Trigger>
     <Tooltip.Content>Redo</Tooltip.Content>
   </Tooltip.Root>
@@ -223,16 +229,19 @@
       <div class="bg-border mx-1 h-6 w-px"></div>
     {:else if 'icon' in action}
       <Tooltip.Root>
-        <Tooltip.Trigger>
-          <Button
-            variant="ghost"
-            size="icon"
-            class="h-8 w-8"
-            disabled={readonly}
-            onclick={() => handleAction(action)}
-          >
-            <action.icon class="h-4 w-4" />
-          </Button>
+        <Tooltip.Trigger asChild>
+          {#snippet child({ props })}
+            <Button
+              {...props}
+              variant="ghost"
+              size="icon"
+              class="h-8 w-8"
+              disabled={readonly}
+              onclick={() => handleAction(action)}
+            >
+              <action.icon class="h-4 w-4" />
+            </Button>
+          {/snippet}
         </Tooltip.Trigger>
         <Tooltip.Content>{action.label}</Tooltip.Content>
       </Tooltip.Root>

@@ -128,6 +128,9 @@
       syncStatus = 'connecting';
       onSyncStatusChange?.('connecting');
 
+      // Save current state before connecting to prevent data loss
+      const currentState = encodeYjsState(ydoc);
+      
       provider = createHocuspocusProvider({
         documentId: cachedDocumentId,
         ydoc: ydoc,
@@ -149,10 +152,14 @@
           onSyncStatusChange?.('disconnected');
         },
         onSynced: () => {
-          // [*] Update content from synced state
+          // [*] After sync, update content from the merged state
           if (ytext) {
-            content = ytext.toString();
-            onContentUpdate?.(content);
+            const syncedContent = ytext.toString();
+            // Only update if content actually changed
+            if (syncedContent !== content) {
+              content = syncedContent;
+              onContentUpdate?.(content);
+            }
           }
         },
         onError: (error) => {
@@ -187,8 +194,15 @@
           if (newContent !== content) {
             isRemoteChange = true;
             content = newContent;
+            
+            // Force update the editor with new content
+            if (editorRef) {
+              editorRef.setContent(newContent);
+            }
+            
             onContentUpdate?.(content);
-            // [*] Reset flag after a tick to allow CodeMirror to update
+            
+            // Reset flag after a tick
             setTimeout(() => {
               isRemoteChange = false;
             }, 0);

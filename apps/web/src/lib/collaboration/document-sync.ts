@@ -10,6 +10,7 @@
 
 import * as Y from 'yjs';
 import { encodeYjsState, decodeYjsState } from './yjs-utils';
+import pako from 'pako';
 
 // --------------------------------------------------------------------------
 // [SECTION] Types
@@ -106,23 +107,70 @@ export async function saveDocumentState(
   documentId: string,
   state: string
 ): Promise<{ success: boolean; error?: string }> {
+  const stateSize = state.length;
+  console.log(`[DocumentSync] Saving state for ${documentId}: ${(stateSize / 1024).toFixed(2)}KB`);
+
+  // Compress large states to avoid body size limits (SvelteKit has ~512KB limit)
+  let payload = state;
+  let isCompressed = false;
+  
+  if (stateSize > 50 * 1024) { // Compress if > 50KB to stay well below 512KB limit
+    try {
+      const compressed = pako.gzip(state);
+      payload = btoa(String.fromCharCode(...compressed));
+      isCompressed = true;
+      console.log(`[DocumentSync] Compressed: ${(stateSize / 1024).toFixed(2)}KB → ${(payload.length / 1024).toFixed(2)}KB`);
+    } catch (err) {
+      console.error('[DocumentSync] Compression failed:', err);
+      // If compression fails and state is too large, return error immediately
+      if (stateSize > 100 * 1024) {
+        return {
+          success: false,
+          error: `Document too large (${(stateSize / 1024).toFixed(2)}KB) and compression failed. Please reduce content.`
+        };
+      }
+    }
+  }
+
   try {
     const response = await fetch(`/api/documents/${documentId}/state`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ state }),
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(isCompressed && { 'X-Content-Encoding': 'gzip' })
+      },
+      body: JSON.stringify({ state: payload }),
       keepalive: true,
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      return { success: false, error: error.message ?? 'Failed to save' };
+      const errorText = await response.text();
+      let errorMessage = 'Failed to save';
+      
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorMessage;
+      } catch {
+        errorMessage = errorText || errorMessage;
+      }
+
+      console.error(`[DocumentSync] Save failed (${response.status}):`, errorMessage);
+      
+      if (response.status === 413) {
+        return { 
+          success: false, 
+          error: `Document too large (${(stateSize / 1024).toFixed(2)}KB)` 
+        };
+      }
+      
+      return { success: false, error: errorMessage };
     }
 
+    console.log(`[DocumentSync] Save successful for ${documentId}`);
     return { success: true };
   } catch (error) {
-    console.error('[DocumentSync] Save failed:', error);
-    return { success: false, error: 'Network error' };
+    console.error('[DocumentSync] Network error during save:', error);
+    return { success: false, error: 'Network error - check connection' };
   }
 }
 

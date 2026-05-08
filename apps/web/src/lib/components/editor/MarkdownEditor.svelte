@@ -360,6 +360,19 @@
       text: editorView.state.doc.sliceString(selection.from, selection.to),
     };
   }
+
+  export function setContent(newContent: string): void {
+    if (!editorView) return;
+    isApplyingExternalContent = true;
+    editorView.dispatch({
+      changes: {
+        from: 0,
+        to: editorView.state.doc.length,
+        insert: newContent,
+      },
+    });
+    isApplyingExternalContent = false;
+  }
 </script>
 
 <!-- -------------------------------------------------------------------------- -->

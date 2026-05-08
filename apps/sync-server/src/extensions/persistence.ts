@@ -42,7 +42,7 @@ export function createPersistenceConfig(sql: Sql) {
         `;
 
         if (result.length > 0 && result[0].yjs_state) {
-          console.log(`[*] Loaded document state: ${documentId}`);
+          console.log(`[*] Loaded document state: ${documentId} (${result[0].yjs_state.length} bytes)`);
           return Buffer.from(result[0].yjs_state, 'base64');
         }
 

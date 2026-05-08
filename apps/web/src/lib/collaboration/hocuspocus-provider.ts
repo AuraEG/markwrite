@@ -15,7 +15,7 @@ import type { Doc } from 'yjs';
 // [SECTION] Configuration
 // --------------------------------------------------------------------------
 
-const SYNC_SERVER_URL = import.meta.env.VITE_SYNC_SERVER_URL || 'ws://localhost:1234';
+const SYNC_SERVER_URL = import.meta.env.PUBLIC_SYNC_SERVER_URL || 'ws://localhost:1234';
 
 // --------------------------------------------------------------------------
 // [SECTION] Types
@@ -67,14 +67,19 @@ export function createHocuspocusProvider(options: ProviderOptions): HocuspocusPr
     broadcast: false, // Disable BroadcastChannel (we use WebSocket only)
     preserveConnection: true, // Keep connection alive
 
+    // [*] Reconnection settings
+    maxAttempts: 10,
+    delay: 1000,
+    timeout: 30000,
+
     // [*] Event handlers
     onConnect: () => {
       console.log(`[HocuspocusProvider] Connected to ${roomName}`);
       onConnect?.();
     },
 
-    onDisconnect: () => {
-      console.log(`[HocuspocusProvider] Disconnected from ${roomName}`);
+    onDisconnect: ({ event }) => {
+      console.log(`[HocuspocusProvider] Disconnected from ${roomName}`, event);
       onDisconnect?.();
     },
 
@@ -88,7 +93,8 @@ export function createHocuspocusProvider(options: ProviderOptions): HocuspocusPr
 
     onAuthenticationFailed: ({ reason }) => {
       console.error(`[HocuspocusProvider] Auth failed: ${reason}`);
-      onError?.(new Error(`Authentication failed: ${reason}`));
+      const error = new Error(`Authentication failed: ${reason}`);
+      onError?.(error);
     },
 
     onClose: ({ event }) => {
@@ -97,11 +103,25 @@ export function createHocuspocusProvider(options: ProviderOptions): HocuspocusPr
       );
       if (event.code !== 1000) {
         console.warn(`[HocuspocusProvider] Unexpected close: ${event.reason || event.code}`);
+        const error = new Error(`Connection closed: ${event.reason || event.code}`);
+        onError?.(error);
       }
     },
 
     onStatus: ({ status }) => {
       console.log(`[HocuspocusProvider] Status changed: ${status}`);
+    },
+
+    onMessage: (data) => {
+      console.log(`[HocuspocusProvider] Message received:`, data);
+    },
+
+    onOutgoingMessage: (data) => {
+      console.log(`[HocuspocusProvider] Message sent:`, data);
+    },
+
+    onOpen: () => {
+      console.log(`[HocuspocusProvider] WebSocket opened for ${roomName}`);
     },
   });
 

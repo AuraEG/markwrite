@@ -16,7 +16,10 @@ const config = {
           regions: ['iad1'], // US East (Virginia) - closest to typical users
           split: false // Keep as single function for simplicity
         })
-      : adapterNode(),
+      : adapterNode({
+          // Increase body size limit to 10MB for large documents
+          bodySizeLimit: 10 * 1024 * 1024
+        }),
     alias: {
       $components: 'src/lib/components',
       $server: 'src/lib/server',

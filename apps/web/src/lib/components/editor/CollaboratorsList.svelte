@@ -46,13 +46,16 @@
       {#each collaborators as collab (collab.id)}
         {@const colors = getUserColor(collab.id)}
         <Tooltip.Root>
-          <Tooltip.Trigger>
-            <div
-              class="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-xs font-medium text-white dark:border-gray-900"
-              style="background-color: {colors.cursor}"
-            >
-              {collab.username.charAt(0).toUpperCase()}
-            </div>
+          <Tooltip.Trigger asChild>
+            {#snippet child({ props })}
+              <div
+                {...props}
+                class="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-xs font-medium text-white dark:border-gray-900 cursor-pointer"
+                style="background-color: {colors.cursor}"
+              >
+                {collab.username.charAt(0).toUpperCase()}
+              </div>
+            {/snippet}
           </Tooltip.Trigger>
           <Tooltip.Content>
             {collab.username}

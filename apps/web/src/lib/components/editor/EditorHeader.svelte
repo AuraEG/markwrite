@@ -299,10 +299,12 @@ ${html}
   <!-- Left Section: Back + Title -->
   <div class="flex items-center gap-3">
     <Tooltip.Root>
-      <Tooltip.Trigger>
-        <Button variant="ghost" size="icon" href="/documents" class="h-9 w-9">
-          <ArrowLeft class="h-4 w-4" />
-        </Button>
+      <Tooltip.Trigger asChild>
+        {#snippet child({ props })}
+          <Button {...props} variant="ghost" size="icon" href="/documents" class="h-9 w-9">
+            <ArrowLeft class="h-4 w-4" />
+          </Button>
+        {/snippet}
       </Tooltip.Trigger>
       <Tooltip.Content>Back to documents</Tooltip.Content>
     </Tooltip.Root>
@@ -352,15 +354,19 @@ ${html}
   <div class="flex items-center gap-1">
     <!-- Owner Avatar -->
     <Tooltip.Root>
-      <Tooltip.Trigger>
-        <Avatar.Root class="border-primary h-8 w-8 border-2">
-          {#if owner.avatarUrl}
-            <Avatar.Image src={owner.avatarUrl} alt={owner.username} />
-          {/if}
-          <Avatar.Fallback class="bg-primary/10 text-primary text-xs">
-            {owner.username.slice(0, 2).toUpperCase()}
-          </Avatar.Fallback>
-        </Avatar.Root>
+      <Tooltip.Trigger asChild>
+        {#snippet child({ props })}
+          <div {...props} class="cursor-pointer">
+            <Avatar.Root class="border-primary h-8 w-8 border-2">
+              {#if owner.avatarUrl}
+                <Avatar.Image src={owner.avatarUrl} alt={owner.username} />
+              {/if}
+              <Avatar.Fallback class="bg-primary/10 text-primary text-xs">
+                {owner.username.slice(0, 2).toUpperCase()}
+              </Avatar.Fallback>
+            </Avatar.Root>
+          </div>
+        {/snippet}
       </Tooltip.Trigger>
       <Tooltip.Content>{owner.username} (Owner)</Tooltip.Content>
     </Tooltip.Root>
@@ -368,15 +374,19 @@ ${html}
     <!-- Collaborator Avatars -->
     {#each collaborators.slice(0, 4) as collab}
       <Tooltip.Root>
-        <Tooltip.Trigger>
-          <Avatar.Root class="border-background -ml-2 h-8 w-8 border-2">
-            {#if collab.avatarUrl}
-              <Avatar.Image src={collab.avatarUrl} alt={collab.username} />
-            {/if}
-            <Avatar.Fallback class="bg-muted text-muted-foreground text-xs">
-              {collab.username.slice(0, 2).toUpperCase()}
-            </Avatar.Fallback>
-          </Avatar.Root>
+        <Tooltip.Trigger asChild>
+          {#snippet child({ props })}
+            <div {...props} class="cursor-pointer">
+              <Avatar.Root class="border-background -ml-2 h-8 w-8 border-2">
+                {#if collab.avatarUrl}
+                  <Avatar.Image src={collab.avatarUrl} alt={collab.username} />
+                {/if}
+                <Avatar.Fallback class="bg-muted text-muted-foreground text-xs">
+                  {collab.username.slice(0, 2).toUpperCase()}
+                </Avatar.Fallback>
+              </Avatar.Root>
+            </div>
+          {/snippet}
         </Tooltip.Trigger>
         <Tooltip.Content>
           {collab.username} ({collab.permission === 'edit' ? 'Can edit' : 'Can view'})
@@ -386,12 +396,16 @@ ${html}
 
     {#if collaborators.length > 4}
       <Tooltip.Root>
-        <Tooltip.Trigger>
-          <Avatar.Root class="border-background -ml-2 h-8 w-8 border-2">
-            <Avatar.Fallback class="bg-muted text-muted-foreground text-xs">
-              +{collaborators.length - 4}
-            </Avatar.Fallback>
-          </Avatar.Root>
+        <Tooltip.Trigger asChild>
+          {#snippet child({ props })}
+            <div {...props} class="cursor-pointer">
+              <Avatar.Root class="border-background -ml-2 h-8 w-8 border-2">
+                <Avatar.Fallback class="bg-muted text-muted-foreground text-xs">
+                  +{collaborators.length - 4}
+                </Avatar.Fallback>
+              </Avatar.Root>
+            </div>
+          {/snippet}
         </Tooltip.Trigger>
         <Tooltip.Content>{collaborators.length - 4} more collaborators</Tooltip.Content>
       </Tooltip.Root>

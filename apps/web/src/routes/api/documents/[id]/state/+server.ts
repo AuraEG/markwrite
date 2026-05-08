@@ -13,6 +13,7 @@ import { db } from '$lib/server/db';
 import { documents, documentCollaborators } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
+import pako from 'pako';
 
 // --------------------------------------------------------------------------
 // [SECTION] GET /api/documents/[id]/state
@@ -65,17 +66,49 @@ export const PUT: RequestHandler = async ({ params, locals, request }) => {
     error(401, { message: 'Authentication required' });
   }
 
+  // Check if content is compressed
+  const isCompressed = request.headers.get('x-content-encoding') === 'gzip';
+
   // [*] Parse request body
   let body: { state: string };
   try {
     body = await request.json();
-  } catch {
+  } catch (err) {
+    console.error('[!] Failed to parse request body:', err);
     error(400, { message: 'Invalid JSON body' });
   }
 
   if (typeof body.state !== 'string') {
     error(400, { message: 'State must be a string' });
   }
+
+  let state = body.state;
+
+  // Decompress if needed
+  if (isCompressed) {
+    try {
+      const compressed = Uint8Array.from(atob(state), c => c.charCodeAt(0));
+      const decompressed = pako.ungzip(compressed, { to: 'string' });
+      state = decompressed;
+      console.log(`[*] Decompressed state: ${compressed.length} → ${state.length} bytes`);
+    } catch (err) {
+      console.error('[!] Decompression failed:', err);
+      error(400, { message: 'Failed to decompress state' });
+    }
+  }
+
+  // [*] Validate state size (max 5MB base64 encoded)
+  const stateSizeBytes = Buffer.byteLength(state, 'utf8');
+  const maxSizeBytes = 5 * 1024 * 1024; // 5MB
+  
+  if (stateSizeBytes > maxSizeBytes) {
+    console.error(`[!] State too large: ${stateSizeBytes} bytes (max: ${maxSizeBytes})`);
+    error(413, { 
+      message: `Document too large. Size: ${(stateSizeBytes / 1024 / 1024).toFixed(2)}MB, Max: ${maxSizeBytes / 1024 / 1024}MB` 
+    });
+  }
+
+  console.log(`[*] Saving state for document ${id}: ${(stateSizeBytes / 1024).toFixed(2)}KB`);
 
   // [*] Fetch document
   const [document] = await db
@@ -100,18 +133,25 @@ export const PUT: RequestHandler = async ({ params, locals, request }) => {
   }
 
   // [*] Update document state
-  await db
-    .update(documents)
-    .set({
-      yjsState: body.state,
-      updatedAt: new Date(),
-    })
-    .where(eq(documents.id, id));
+  try {
+    await db
+      .update(documents)
+      .set({
+        yjsState: state,
+        updatedAt: new Date(),
+      })
+      .where(eq(documents.id, id));
 
-  return json({
-    success: true,
-    updatedAt: new Date().toISOString(),
-  });
+    console.log(`[ok] Saved state for document ${id}`);
+
+    return json({
+      success: true,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error('[!] Failed to update document state:', err);
+    error(500, { message: 'Failed to save document state' });
+  }
 };
 
 // --------------------------------------------------------------------------
