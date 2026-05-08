@@ -87,7 +87,7 @@ export const PUT: RequestHandler = async ({ params, locals, request }) => {
   // Decompress if needed
   if (isCompressed) {
     try {
-      const compressed = Uint8Array.from(atob(state), c => c.charCodeAt(0));
+      const compressed = Uint8Array.from(atob(state), (c) => c.charCodeAt(0));
       const decompressed = pako.ungzip(compressed, { to: 'string' });
       state = decompressed;
       console.log(`[*] Decompressed state: ${compressed.length} → ${state.length} bytes`);
@@ -100,11 +100,11 @@ export const PUT: RequestHandler = async ({ params, locals, request }) => {
   // [*] Validate state size (max 5MB base64 encoded)
   const stateSizeBytes = Buffer.byteLength(state, 'utf8');
   const maxSizeBytes = 5 * 1024 * 1024; // 5MB
-  
+
   if (stateSizeBytes > maxSizeBytes) {
     console.error(`[!] State too large: ${stateSizeBytes} bytes (max: ${maxSizeBytes})`);
-    error(413, { 
-      message: `Document too large. Size: ${(stateSizeBytes / 1024 / 1024).toFixed(2)}MB, Max: ${maxSizeBytes / 1024 / 1024}MB` 
+    error(413, {
+      message: `Document too large. Size: ${(stateSizeBytes / 1024 / 1024).toFixed(2)}MB, Max: ${maxSizeBytes / 1024 / 1024}MB`,
     });
   }
 

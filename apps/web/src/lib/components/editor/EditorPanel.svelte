@@ -130,7 +130,7 @@
 
       // Save current state before connecting to prevent data loss
       const currentState = encodeYjsState(ydoc);
-      
+
       provider = createHocuspocusProvider({
         documentId: cachedDocumentId,
         ydoc: ydoc,
@@ -194,14 +194,14 @@
           if (newContent !== content) {
             isRemoteChange = true;
             content = newContent;
-            
+
             // Force update the editor with new content
             if (editorRef) {
               editorRef.setContent(newContent);
             }
-            
+
             onContentUpdate?.(content);
-            
+
             // Reset flag after a tick
             setTimeout(() => {
               isRemoteChange = false;
